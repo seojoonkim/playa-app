@@ -5,8 +5,35 @@ import {
   Users, Briefcase, MoreHorizontal, ChevronLeft, 
   Edit3, Camera, Check, Send, Shield, Star, CalendarDays, 
   Image as ImageIcon, PlusSquare, Bookmark, Share2, AlignLeft,
-  Phone, Mail, Edit2
+  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, PartyPopper
 } from 'lucide-react';
+
+// --- CONFIG ---
+const PLAYA_LOGO_URL = "https://placehold.co/120x40/white/black?text=PLAYA&font=playfair"; 
+
+// --- STYLE INJECTOR ---
+const GlobalStyles = () => {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      body { font-family: 'Inter', sans-serif; background-color: #fafafa; overscroll-behavior: none; }
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+      .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+  return null;
+};
 
 // --- MOCK DATA ---
 const INITIAL_USER = {
@@ -22,6 +49,8 @@ const INITIAL_USER = {
   downlines: ['user_002', 'user_003', 'user_007', 'user_008', 'user_009'],
   role: 'member', 
   profileImage: null,
+  credits: 500000,
+  prepaid: 1500000,
 };
 
 const OTHER_USERS = {
@@ -29,6 +58,56 @@ const OTHER_USERS = {
   'golf_pro': { name: 'golf_pro', company: 'Hole In One', title: 'Director', id: 'user_006', joinDate: '2023.09.10', bio: 'Single Player', email: 'golf@hio.com', phone: '010-3333-4444', upline: 'kim_playa', downlines: [] },
   'playa_official': { name: 'playa_official', company: 'Playa', title: 'Manager', id: 'admin', joinDate: '2023.01.01', bio: 'Concierge', email: 'help@playa.club', phone: '02-1234-5678', upline: null, downlines: [] }
 };
+
+const MY_RESERVATIONS = [
+  { id: 101, facility: 'Tennis Court', date: '2023-11-25', time: '10:00', status: 'upcoming' },
+  { id: 102, facility: 'Bornyon Dining', date: '2023-11-28', time: '18:30', status: 'upcoming' },
+  { id: 201, facility: 'Screen Golf', date: '2023-11-10', time: '14:00', status: 'completed' },
+  { id: 202, facility: 'Audio Lounge', date: '2023-11-05', time: '20:00', status: 'completed' },
+];
+
+const INITIAL_EVENTS = [
+  { 
+    id: 1, 
+    title: 'Summer Night Tennis', 
+    date: '2023-12-01', 
+    time: '19:00', 
+    location: 'Rooftop Court', 
+    maxAttendees: 10, 
+    attendees: ['tennis_lover', 'golf_pro', 'user_007'], 
+    image: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&q=80&w=800',
+    status: 'upcoming'
+  },
+  { 
+    id: 2, 
+    title: 'Wine Tasting: Pinot Noir', 
+    date: '2023-12-05', 
+    time: '18:30', 
+    location: 'Bornyon', 
+    maxAttendees: 20, 
+    attendees: ['kim_playa', 'golf_pro'], 
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=800',
+    status: 'upcoming'
+  },
+  { 
+    id: 3, 
+    title: 'Networking Night', 
+    date: '2023-11-10', 
+    time: '20:00', 
+    location: 'Lounge', 
+    maxAttendees: 50, 
+    attendees: ['kim_playa', 'tennis_lover', 'golf_pro', 'user_002', 'user_003'], 
+    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800',
+    status: 'past'
+  }
+];
+
+const NOTIFICATIONS = [
+  { id: 1, type: 'comment', message: 'tennis_lover님이 회원님의 게시물에 댓글을 남겼습니다.', time: '10분 전', read: false },
+  { id: 2, type: 'like', message: 'golf_pro님이 회원님의 게시물을 좋아합니다.', time: '1시간 전', read: false },
+  { id: 3, type: 'reservation_day', message: '[예약 알림] 내일(11/25) 10:00 테니스 코트 예약이 있습니다.', time: '3시간 전', read: true },
+  { id: 4, type: 'reservation_hour', message: '[예약 알림] 1시간 뒤 스크린 골프 예약이 있습니다.', time: '2주 전', read: true },
+];
 
 const FACILITIES = [
   { id: 'tennis_1', name: 'Tennis Court', type: 'Sports' },
@@ -49,13 +128,6 @@ const FEED_CATEGORIES = [
   { id: 'tennis', label: 'Tennis' },
   { id: 'badminton', label: 'Badminton' },
   { id: 'golf', label: 'Golf' },
-];
-
-const GUIDE_TABS = [
-  { id: 'intro', label: 'Philosophy' },
-  { id: 'facilities', label: 'Facilities' },
-  { id: 'reservation', label: 'Rules' },
-  { id: 'location', label: 'Location' },
 ];
 
 const INITIAL_POSTS = [
@@ -129,7 +201,36 @@ const generateTimeSlots = () => {
   return slots;
 };
 
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
+};
+
 // --- COMPONENTS ---
+
+const NotificationDrawer = ({ isOpen, onClose }) => {
+  return (
+    <>
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-xs bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 pt-[env(safe-area-inset-top)] mt-4">
+          <span className="font-bold text-slate-900 text-lg">Notifications</span>
+          <button onClick={onClose}><X size={24} className="text-slate-400 hover:text-slate-900" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {NOTIFICATIONS.map((notif) => (
+            <div key={notif.id} className={`flex gap-3 p-3 rounded-xl border ${notif.read ? 'bg-white border-gray-100' : 'bg-blue-50 border-blue-100'}`}>
+              <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${notif.read ? 'bg-gray-300' : 'bg-[#0095f6]'}`}></div>
+              <div>
+                <p className={`text-sm leading-relaxed ${notif.read ? 'text-slate-500' : 'text-slate-800 font-medium'}`}>{notif.message}</p>
+                <span className="text-xs text-gray-400 mt-1 block">{notif.time}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
 
 const ImageDots = ({ current, total }) => {
   if (total <= 1) return null;
@@ -188,8 +289,6 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
   const [text, setText] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const scrollRef = useRef(null);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -207,24 +306,16 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
     setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, 100);
   };
 
-  const onTouchStart = (e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); }
-  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-  const onTouchEnd = () => { if (!touchStart || !touchEnd) return; if (touchStart - touchEnd < -50) onClose(); }
-
   if (!isOpen && !isVisible) return null;
 
   return (
     <>
       <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div 
-        className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
-        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
-      >
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-center h-14 border-b border-gray-100 relative bg-white flex-shrink-0 pt-[env(safe-area-inset-top)]">
           <span className="font-bold text-slate-900">Comments</span>
           <button onClick={onClose} className="absolute right-4 text-slate-900 p-2"><X size={24} strokeWidth={1.5} /></button>
         </div>
-        
         <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white pb-24">
           {post && (
             <>
@@ -258,6 +349,30 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
         </div>
       </div>
     </>
+  );
+};
+
+// Event Attendees Modal
+const EventAttendeesModal = ({ event, onClose }) => {
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-fadeIn" onClick={onClose}>
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-scaleIn relative" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+           <h3 className="font-bold text-slate-900">Attendees ({event.attendees.length})</h3>
+           <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-slate-900"/></button>
+        </div>
+        <div className="p-4 max-h-60 overflow-y-auto space-y-3">
+          {event.attendees.map((name, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">
+                {name[0]}
+              </div>
+              <span className="text-sm font-medium text-slate-800">{name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -378,16 +493,8 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const containerRef = useRef(null);
 
-  useLayoutEffect(() => {
-    if (containerRef.current && scrollPosRef) {
-      containerRef.current.scrollTop = scrollPosRef.current;
-    }
-  }, [scrollPosRef]);
-
-  const handleScroll = (e) => {
-    if (scrollPosRef) scrollPosRef.current = e.target.scrollTop;
-  };
-
+  useLayoutEffect(() => { if (containerRef.current && scrollPosRef) containerRef.current.scrollTop = scrollPosRef.current; }, [scrollPosRef]);
+  const handleScroll = (e) => { if (scrollPosRef) scrollPosRef.current = e.target.scrollTop; };
   const toggleLike = (postId) => { setPosts(posts.map(p => p.id === postId ? { ...p, likedBy: p.likedBy.includes(user.name) ? p.likedBy.filter(u => u !== user.name) : [...p.likedBy, user.name] } : p)); };
   const filteredPosts = activeTab === 'all' ? posts : posts.filter(p => p.category === activeTab);
   const [currentImageIndices, setCurrentImageIndices] = useState({});
@@ -446,6 +553,7 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
 
 // Reservation Section
 const ReservationSection = () => {
+  const [bookTab, setBookTab] = useState('status');
   const [selectedFacility, setSelectedFacility] = useState(FACILITIES[0]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -473,68 +581,177 @@ const ReservationSection = () => {
       </div>
     );
   };
+
+  const GuideContent = () => (
+    <div className="bg-white p-8 rounded-xl border border-gray-200 text-slate-600 text-sm leading-7 font-light shadow-sm animate-fadeIn">
+      <h4 className="font-bold text-slate-900 mb-4 text-lg">예약 및 이용 안내</h4>
+      <ul className="list-disc list-inside space-y-3 text-sm">
+        <li>모든 시설은 30분 단위로 예약 가능합니다.</li>
+        <li>예약 취소는 이용 3시간 전까지 가능합니다.</li>
+        <li>동반 게스트는 회원 1인당 최대 3인까지 가능합니다.</li>
+        <li>운영 시간: 평일 06:00 - 23:00 / 주말 08:00 - 22:00</li>
+      </ul>
+    </div>
+  );
+
   return (
-    <div className="pb-24 pt-6 px-4 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto">
+    <div className="pb-24 pt-0 px-4 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto">
       {isCalendarOpen && <CalendarModal />}
-      <div className="bg-white p-6 mb-6 rounded-2xl shadow-sm border border-gray-200">
-        <h2 className="text-slate-900 text-xs font-bold uppercase tracking-widest mb-6 text-center border-b border-gray-100 pb-4">Make a Reservation</h2>
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Facility</label>
-            <div className="relative flex-1"><select className="w-full bg-gray-50 border border-gray-200 text-slate-900 py-2 px-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black rounded-lg appearance-none font-bold text-right pr-8" value={selectedFacility.id} onChange={(e) => setSelectedFacility(FACILITIES.find(f => f.id === e.target.value))}><optgroup label="SPORTS">{FACILITIES.filter(f => f.type === 'Sports').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label="LOUNGE">{FACILITIES.filter(f => f.type === 'Lounge').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup></select><ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} /></div>
-          </div>
-          <div className="flex items-center gap-4">
-            <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Date</label>
-            <div className="flex-1 flex items-center justify-end bg-gray-50 rounded-lg p-1 border border-gray-200"><button onClick={() => changeDate(-1)} disabled={selectedDateStr <= todayStr} className={`p-2 rounded-md transition-colors ${selectedDateStr <= todayStr ? 'text-gray-300' : 'text-slate-600 hover:bg-white hover:shadow-sm'}`}><ChevronLeft size={16} /></button><button onClick={() => setIsCalendarOpen(true)} className="flex-1 flex items-center justify-center gap-2 py-1 text-slate-900 font-bold text-sm hover:bg-white rounded-md transition-all"><Calendar size={14} className="text-slate-900" />{currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</button><button onClick={() => changeDate(1)} className="p-2 rounded-md text-slate-600 hover:bg-white hover:shadow-sm transition-colors"><ChevronRight size={16} /></button></div>
-          </div>
-        </div>
+      
+      {/* Top Tabs (Fixed Layout) */}
+      <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 flex mb-4 px-2">
+        {['status', 'reserve', 'guide'].map(tab => (
+            <button 
+              key={tab}
+              onClick={() => setBookTab(tab)} 
+              className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative ${bookTab === tab ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              {tab === 'status' ? 'My Status' : tab === 'reserve' ? 'New Reservation' : 'Guide'}
+              {bookTab === tab && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0095f6]"></div>}
+            </button>
+        ))}
       </div>
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-xs tracking-widest uppercase font-bold">Time Slots</span><div className="flex gap-3 text-[10px]"><span className="flex items-center gap-1.5 text-slate-400 font-medium"><div className="w-2.5 h-2.5 bg-gray-100 rounded-full border border-gray-200"></div> Booked</span><span className="flex items-center gap-1.5 text-slate-700 font-medium"><div className="w-2.5 h-2.5 border border-slate-300 rounded-full"></div> Available</span></div></div>
-        <div className="grid grid-cols-6 gap-1.5">{timeSlots.map((time) => { const booked = isSlotBooked(time); const selected = selectedSlots.includes(time); return (<button key={time} disabled={booked} onClick={() => toggleSlot(time)} className={`py-2.5 text-[10px] tracking-tight transition-all rounded-md font-medium ${booked ? 'bg-gray-50 text-gray-300 cursor-not-allowed border border-transparent decoration-slate-300' : selected ? 'bg-black text-white font-bold shadow-md transform scale-[1.02] border border-black' : 'bg-white border border-gray-200 text-slate-600 hover:border-black hover:text-black'}`}>{time}</button>); })}</div>
-        {selectedSlots.length > 0 && <button className="w-full mt-8 bg-[#0095f6] hover:bg-[#1877f2] text-white py-4 rounded-xl font-bold text-xs tracking-[0.1em] uppercase transition-colors shadow-lg" onClick={() => {alert('Reservation Confirmed'); setSelectedSlots([])}}>Confirm Booking</button>}
+
+      <div className="pt-4">
+        {bookTab === 'status' && (
+            <div className="space-y-4 animate-fadeIn">
+            <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                <div className="relative z-10">
+                    <h3 className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><Wallet size={14}/> Balance</h3>
+                    <div className="space-y-3">
+                    <div className="flex justify-between items-end border-b border-white/10 pb-3">
+                        <span className="text-sm text-slate-300">Prepaid Card</span>
+                        <span className="text-xl font-bold font-mono tracking-tight">{formatCurrency(INITIAL_USER.prepaid)}</span>
+                    </div>
+                    <div className="flex justify-between items-end">
+                        <span className="text-sm text-slate-300">Credits</span>
+                        <span className="text-xl font-bold font-mono tracking-tight text-emerald-400">{formatCurrency(INITIAL_USER.credits)}</span>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-xs text-slate-900 font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><History size={14}/> Upcoming</h3>
+                <div className="space-y-3">
+                {MY_RESERVATIONS.filter(r => r.status === 'upcoming').map(r => (
+                    <div key={r.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm text-center w-14">
+                        <div className="text-[9px] text-gray-400 uppercase font-bold">{new Date(r.date).toLocaleString('en-US', {month:'short'})}</div>
+                        <div className="text-lg font-bold text-slate-900">{new Date(r.date).getDate()}</div>
+                        </div>
+                        <div>
+                        <div className="text-sm font-bold text-slate-900">{r.facility}</div>
+                        <div className="text-xs text-emerald-600 font-medium mt-0.5">{r.time} • Confirmed</div>
+                        </div>
+                    </div>
+                ))}
+                </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm opacity-60">
+                <h3 className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-4">Past</h3>
+                <div className="space-y-3">
+                {MY_RESERVATIONS.filter(r => r.status === 'completed').map(r => (
+                    <div key={r.id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                        <div>
+                        <div className="text-sm font-medium text-slate-700">{r.facility}</div>
+                        <div className="text-[10px] text-gray-400">{r.date} {r.time}</div>
+                        </div>
+                        <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Completed</span>
+                    </div>
+                ))}
+                </div>
+            </div>
+            </div>
+        )}
+
+        {bookTab === 'reserve' && (
+            <div className="animate-fadeIn">
+            <div className="bg-white p-6 mb-6 rounded-2xl shadow-sm border border-gray-200">
+                <h2 className="text-slate-900 text-xs font-bold uppercase tracking-widest mb-6 text-center border-b border-gray-100 pb-4">Details</h2>
+                <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Facility</label>
+                    <div className="relative flex-1"><select className="w-full bg-gray-50 border border-gray-200 text-slate-900 py-2 px-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black rounded-lg appearance-none font-bold text-right pr-8" value={selectedFacility.id} onChange={(e) => setSelectedFacility(FACILITIES.find(f => f.id === e.target.value))}><optgroup label="SPORTS">{FACILITIES.filter(f => f.type === 'Sports').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label="LOUNGE">{FACILITIES.filter(f => f.type === 'Lounge').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup></select><ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} /></div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Date</label>
+                    <div className="flex-1 flex items-center justify-end bg-gray-50 rounded-lg p-1 border border-gray-200"><button onClick={() => changeDate(-1)} disabled={selectedDateStr <= todayStr} className={`p-2 rounded-md transition-colors ${selectedDateStr <= todayStr ? 'text-gray-300' : 'text-slate-600 hover:bg-white hover:shadow-sm'}`}><ChevronLeft size={16} /></button><button onClick={() => setIsCalendarOpen(true)} className="flex-1 flex items-center justify-center gap-2 py-1 text-slate-900 font-bold text-sm hover:bg-white rounded-md transition-all"><Calendar size={14} className="text-slate-900" />{currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</button><button onClick={() => changeDate(1)} className="p-2 rounded-md text-slate-600 hover:bg-white hover:shadow-sm transition-colors"><ChevronRight size={16} /></button></div>
+                </div>
+                </div>
+            </div>
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                <div className="flex justify-between items-center mb-4"><span className="text-slate-500 text-xs tracking-widest uppercase font-bold">Time Slots</span><div className="flex gap-3 text-[10px]"><span className="flex items-center gap-1.5 text-slate-400 font-medium"><div className="w-2.5 h-2.5 bg-gray-100 rounded-full border border-gray-200"></div> Booked</span><span className="flex items-center gap-1.5 text-slate-700 font-medium"><div className="w-2.5 h-2.5 border border-slate-300 rounded-full"></div> Available</span></div></div>
+                <div className="grid grid-cols-6 gap-1.5">{timeSlots.map((time) => { const booked = isSlotBooked(time); const selected = selectedSlots.includes(time); return (<button key={time} disabled={booked} onClick={() => toggleSlot(time)} className={`py-2.5 text-[10px] tracking-tight transition-all rounded-md font-medium ${booked ? 'bg-gray-50 text-gray-300 cursor-not-allowed border border-transparent decoration-slate-300' : selected ? 'bg-black text-white font-bold shadow-md transform scale-[1.02] border border-black' : 'bg-white border border-gray-200 text-slate-600 hover:border-black hover:text-black'}`}>{time}</button>); })}</div>
+                {selectedSlots.length > 0 && <button className="w-full mt-8 bg-[#0095f6] hover:bg-[#1877f2] text-white py-4 rounded-xl font-bold text-xs tracking-[0.1em] uppercase transition-colors shadow-lg" onClick={() => {alert('Reservation Confirmed'); setSelectedSlots([])}}>Confirm Booking</button>}
+            </div>
+            </div>
+        )}
+        
+        {bookTab === 'guide' && <GuideContent />}
       </div>
     </div>
   );
 };
 
-// Guide Section (Sticky Tabs)
-const GuideSection = () => {
-  const [activeTab, setActiveTab] = useState('intro');
-  const content = {
-    intro: (
-      <div className="space-y-8 py-8 text-center animate-fadeIn">
-        <div className="border-y border-gray-100 py-16 bg-white"><h3 className="text-3xl text-slate-900 font-bold mb-6 tracking-tight font-serif">"Wellness Meets<br/>Connection"</h3><p className="text-slate-500 text-sm font-light leading-8 max-w-xs mx-auto">플라야는 바쁜 일상 속에서 균형을 찾고,<br/>고요함 속에서 진정한 여유를 경험하는<br/>프라이빗 멤버십 클럽입니다.</p></div>
-        <div className="grid grid-cols-3 gap-4">{['PRIVATE', 'WELLNESS', 'COMMUNITY'].map(k => <div key={k} className="bg-white border border-gray-200 py-5 rounded-xl text-[10px] tracking-[0.2em] text-slate-600 uppercase shadow-sm font-bold">{k}</div>)}</div>
-      </div>
-    ),
-    facilities: (
-      <div className="space-y-4 py-4 animate-fadeIn">
-        {[{ name: 'Tennis Court', loc: 'Rooftop', desc: 'Full-size hard court' }, { name: 'Audio Lounge', loc: '2F', desc: 'High-end sound system & LP' }, { name: 'Bornyon', loc: '3F', desc: 'Wood-fire dining & Wine' }, { name: 'Screen Golf', loc: 'B1', desc: 'Private Trackman room' }].map((f, i) => (
-          <div key={i} className="bg-white border border-gray-200 p-6 rounded-xl flex justify-between items-center hover:shadow-md transition-all group cursor-pointer"><div><div className="text-slate-900 text-base font-bold tracking-wide transition-colors font-serif">{f.name}</div><div className="text-slate-500 text-xs mt-1 font-medium">{f.desc}</div></div><div className="text-slate-500 text-[10px] bg-gray-100 px-3 py-1 rounded-full uppercase font-bold">{f.loc}</div></div>
-        ))}
-      </div>
-    ),
-    reservation: (
-      <div className="bg-white p-8 rounded-xl border border-gray-200 text-slate-600 text-sm leading-7 font-light shadow-sm animate-fadeIn"><h4 className="font-bold text-slate-900 mb-4">예약 및 이용 안내</h4><ul className="list-disc list-inside space-y-2"><li>모든 시설은 30분 단위로 예약 가능합니다.</li><li>예약 취소는 이용 3시간 전까지 가능합니다.</li><li>동반 게스트는 회원 1인당 최대 3인까지 가능합니다.</li><li>운영 시간: 평일 06:00 - 23:00 / 주말 08:00 - 22:00</li></ul></div>
-    ),
-    location: (
-      <div className="space-y-4 py-4 animate-fadeIn">
-        <div className="h-56 bg-gray-100 rounded-2xl flex items-center justify-center text-slate-400 text-xs tracking-widest uppercase border border-gray-200 shadow-inner">[Map View API]</div>
-        <div className="bg-white border border-gray-200 p-8 rounded-xl text-center shadow-sm"><div className="text-slate-900 text-base font-bold mb-2 font-serif">Playa Lounge Seoul</div><div className="text-slate-500 text-sm font-medium">서울 강남구 논현로 742, 3층</div><div className="text-slate-600 text-[10px] mt-4 uppercase tracking-wide font-bold bg-gray-100 inline-block px-4 py-1.5 rounded-full">Valet Parking Available</div></div>
-      </div>
-    )
+// Event Section
+const EventSection = () => {
+  const [eventTab, setEventTab] = useState('upcoming');
+  const [attendeeModalOpen, setAttendeeModalOpen] = useState(null);
+  const [events, setEvents] = useState(INITIAL_EVENTS); // Mock events data needed
+
+  // Mock toggle join
+  const toggleJoin = (eventId) => {
+     // ... logic to toggle join
+     alert("Event joined/left!");
   };
+
+  const filteredEvents = events.filter(e => e.status === eventTab);
+
   return (
-    <div className="pb-24 pt-0 bg-white min-h-full relative h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm pt-4 pb-2 border-b border-gray-200 px-5">
-        <div className="flex justify-between">
-          {GUIDE_TABS.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${activeTab === tab.id ? 'text-[#0095f6] border-b-2 border-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}>{tab.label}</button>
-          ))}
-        </div>
-      </div>
-      <div className="px-5 pt-6">{content[activeTab]}</div>
+    <div className="pb-24 pt-0 px-4 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto">
+       {attendeeModalOpen && <EventAttendeesModal event={attendeeModalOpen} onClose={() => setAttendeeModalOpen(null)} />}
+
+       {/* Tabs */}
+       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-2 border-b border-gray-100 flex gap-2 mb-4">
+         <button onClick={() => setEventTab('upcoming')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${eventTab === 'upcoming' ? 'text-[#0095f6] border-[#0095f6]' : 'text-gray-400 border-transparent'}`}>Upcoming</button>
+         <button onClick={() => setEventTab('past')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${eventTab === 'past' ? 'text-[#0095f6] border-[#0095f6]' : 'text-gray-400 border-transparent'}`}>Past</button>
+       </div>
+
+       <div className="space-y-4">
+         {filteredEvents.map(event => (
+           <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="h-40 relative">
+                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
+                  {event.attendees.length}/{event.maxAttendees} Joined
+                </div>
+              </div>
+              <div className="p-5">
+                 <div className="flex justify-between items-start mb-2">
+                   <div>
+                     <h3 className="font-bold text-slate-900 text-lg mb-1">{event.title}</h3>
+                     <p className="text-xs text-slate-500 flex items-center gap-1"><Calendar size={12}/> {event.date} {event.time}</p>
+                     <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={12}/> {event.location}</p>
+                   </div>
+                   {event.status === 'upcoming' && (
+                     <button onClick={() => toggleJoin(event.id)} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold">Join</button>
+                   )}
+                 </div>
+                 <div className="border-t border-gray-100 pt-3 mt-3">
+                    <button 
+                      onClick={() => setAttendeeModalOpen(event)}
+                      className="text-[11px] text-[#0095f6] font-bold flex items-center gap-1"
+                    >
+                      <Users size={12}/> View Attendees
+                    </button>
+                 </div>
+              </div>
+           </div>
+         ))}
+       </div>
     </div>
   );
 };
@@ -607,7 +824,98 @@ const PassSection = ({ user }) => {
   );
 };
 
-// Main App - Fixed Layout Structure
+// Profile Section (Full Page)
+const ProfileSection = ({ user, onLogout, onUpdateProfile }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ ...user });
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setEditData({ ...editData, profileImage: imageUrl });
+    }
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(editData);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="bg-white min-h-full relative h-full overflow-y-auto pb-24">
+      {/* Profile Header & Actions */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 p-4 flex justify-between items-center">
+        <h2 className="font-bold text-slate-900">My Profile</h2>
+        {isEditing ? (
+          <div className="flex gap-3">
+            <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button>
+            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
+          </div>
+        ) : (
+          <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1"><Edit2 size={14}/> Edit</button>
+        )}
+      </div>
+
+      <div className="p-6">
+        <div className="text-center mb-8 relative">
+          <div className="w-28 h-28 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden">
+             {isEditing ? (
+                <div onClick={() => fileInputRef.current.click()} className="cursor-pointer w-full h-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
+                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover opacity-50" /> : <span className="text-slate-300">{editData.name[0]}</span>}
+                   <Camera className="text-slate-600 absolute" size={24} />
+                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                </div>
+             ) : (
+                user.profileImage ? <img src={user.profileImage} className="w-full h-full object-cover" /> : user.name[0]
+             )}
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
+          {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
+        </div>
+
+        {isEditing ? (
+          <div className="space-y-4 animate-fadeIn">
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            </div>
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
+               <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                 <span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Calendar size={14}/> Joined</span>
+                 <div className="text-right flex items-center gap-2"><span className="text-sm font-bold text-slate-800">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
+               </div>
+               <div className="space-y-2">
+                 <div className="flex justify-between"><span className="text-xs text-slate-500">Email</span><span className="text-xs font-medium text-slate-900">{user.email}</span></div>
+                 <div className="flex justify-between"><span className="text-xs text-slate-500">Phone</span><span className="text-xs font-medium text-slate-900">{user.phone}</span></div>
+               </div>
+             </div>
+
+             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
+               <div className="flex justify-between items-center mb-3"><span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Users size={14}/> Network</span><span className="text-xs font-bold text-slate-800">Upline: {user.upline || 'Founder'}</span></div>
+               <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
+               <div className="flex flex-wrap gap-2">
+                 {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
+               </div>
+             </div>
+             
+             <button onClick={onLogout} className="w-full py-3 border border-rose-100 text-rose-500 rounded-xl text-xs font-bold uppercase hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"><LogOut size={14} /> Sign Out</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Main App
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -619,21 +927,35 @@ const App = () => {
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState(false);
   const [activePostForComments, setActivePostForComments] = useState(null);
   const [viewingImage, setViewingImage] = useState(null);
-  const [feedScrollPos, setFeedScrollPos] = useState(0); // Correctly defined state
+  const [feedScrollPos, setFeedScrollPos] = useState(0); 
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const scrollPosRef = useRef(0);
 
   const menuItems = [
     { id: 'feed', icon: Layout, label: 'Feed' },
     { id: 'book', icon: Calendar, label: 'Book' },
-    { id: 'guide', icon: BookOpen, label: 'Guide' },
+    { id: 'event', icon: PartyPopper, label: 'Event' }, // New Event Tab
     { id: 'chat', icon: MessageCircle, label: 'Concierge' },
     { id: 'pass', icon: QrCode, label: 'Pass' },
+    { id: 'profile', icon: User, label: 'Profile' },
   ];
 
   const handleLogin = (admin) => { setIsLoggedIn(true); setIsAdmin(admin); setCurrentUser(admin ? ADMIN_USER : INITIAL_USER); };
   const handleLogout = () => { setIsLoggedIn(false); setIsAdmin(false); setActiveTab('feed'); };
   const handleUpdateProfile = (updatedUser) => { setCurrentUser(updatedUser); };
 
+  useLayoutEffect(() => {
+    if (activeTab === 'feed') {
+      window.scrollTo(0, feedScrollPos.current);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [activeTab]);
+
   const handleTabChange = (newTab) => {
+    if (activeTab === 'feed') {
+      feedScrollPos.current = window.scrollY;
+    }
     setActiveTab(newTab);
   };
 
@@ -661,11 +983,12 @@ const App = () => {
 
   const renderContent = () => {
     switch(activeTab) {
-      case 'feed': return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; // Pass dummy ref for now or use state
+      case 'feed': return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; 
       case 'book': return <ReservationSection />;
-      case 'guide': return <GuideSection />;
+      case 'event': return <EventSection />; // New Event Section
       case 'chat': return <InquirySection />;
       case 'pass': return <PassSection user={currentUser} />;
+      case 'profile': return <ProfileSection user={currentUser} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />;
       default: return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} />;
     }
   };
@@ -673,20 +996,20 @@ const App = () => {
   return (
     <div className="fixed inset-0 bg-gray-100 flex justify-center items-center font-sans text-slate-900">
       <div className="w-full max-w-md bg-white fixed inset-0 mx-auto shadow-2xl border-x border-gray-200 flex flex-col overflow-hidden">
+        <GlobalStyles />
         {/* Overlays */}
-        {viewingUser && <UserProfilePopup userName={viewingUser} currentUser={currentUser} onClose={() => setViewingUser(null)} onUpdateProfile={handleUpdateProfile} />}
+        {viewingUser && <UserProfilePopup userName={viewingUser} currentUser={currentUser} onClose={() => setViewingUser(null)} />}
         {isCreatingPost && <CreatePostModal user={currentUser} onClose={() => setIsCreatingPost(false)} onCreate={handleCreatePost} />}
         {viewingImage && <ImageViewer images={viewingImage.images} initialIndex={viewingImage.index} onClose={() => setViewingImage(null)} />}
         <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} />
+        <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
 
         {/* Header (Fixed Top) */}
         <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 h-auto min-h-[50px] flex items-center justify-between px-4 z-30 flex-shrink-0 pt-[env(safe-area-inset-top)] pb-2 box-content w-full">
           <h1 className="text-xl font-bold text-slate-900 cursor-pointer pt-2" style={{ fontFamily: "'Billabong', cursive" }} onClick={() => handleTabChange('feed')}>Playa</h1>
-          <button onClick={() => setViewingUser(currentUser.name)} className="flex items-center gap-2 hover:bg-gray-50 p-1 pr-6 rounded-full transition-colors mt-2">
-            <span className="text-sm font-bold text-slate-700">{currentUser.name}</span>
-            <div className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden border border-gray-200">
-              {currentUser.profileImage ? <img src={currentUser.profileImage} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-sm text-gray-500 font-bold">{currentUser.name[0]}</div>}
-            </div>
+          <button onClick={() => setIsNotificationOpen(true)} className="p-2 hover:bg-gray-50 rounded-full transition-colors relative mr-2">
+            <Bell size={24} strokeWidth={1.5} className="text-slate-900" />
+            <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
           </button>
         </header>
 
@@ -721,20 +1044,6 @@ const App = () => {
           </div>
         </nav>
       </div>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #fafafa; overscroll-behavior: none; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Safe Area Utilities */
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-        .pt-safe { padding-top: env(safe-area-inset-top); }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
-        .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      `}</style>
     </div>
   );
 };

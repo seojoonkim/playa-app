@@ -5,7 +5,7 @@ import {
   Users, Briefcase, MoreHorizontal, ChevronLeft, 
   Edit3, Camera, Check, Send, Shield, Star, CalendarDays, 
   Image as ImageIcon, PlusSquare, Bookmark, Share2, AlignLeft,
-  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, PartyPopper
+  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, PartyPopper, Ticket
 } from 'lucide-react';
 
 // --- CONFIG ---
@@ -17,15 +17,45 @@ const GlobalStyles = () => {
     const style = document.createElement('style');
     style.innerHTML = `
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-      body { font-family: 'Inter', sans-serif; background-color: #fafafa; overscroll-behavior: none; }
+      
+      body { 
+        font-family: 'Inter', sans-serif; 
+        background-color: #fafafa; 
+        overscroll-behavior: none; 
+      }
+
+      /* Custom Overlay Scrollbar */
+      .custom-scrollbar {
+        overflow-y: auto;
+      }
+      
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        background: transparent;
+      }
+      
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+      }
+      
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
       .scrollbar-hide::-webkit-scrollbar { display: none; }
       .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      
       .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
       .pt-safe { padding-top: env(safe-area-inset-top); }
+      
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      
       .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
-      .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-slideInRight { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     `;
     document.head.appendChild(style);
     return () => {
@@ -51,12 +81,16 @@ const INITIAL_USER = {
   profileImage: null,
   credits: 500000,
   prepaid: 1500000,
+  uplines: ['Founder', 'Co-Founder'],
 };
 
 const OTHER_USERS = {
-  'tennis_lover': { name: 'tennis_lover', company: 'Ace Sports', title: 'Pro', id: 'user_005', joinDate: '2023.08.01', bio: 'Tennis is Life 🎾', email: 'tennis@ace.com', phone: '010-1111-2222', upline: 'kim_playa', downlines: [] },
-  'golf_pro': { name: 'golf_pro', company: 'Hole In One', title: 'Director', id: 'user_006', joinDate: '2023.09.10', bio: 'Single Player', email: 'golf@hio.com', phone: '010-3333-4444', upline: 'kim_playa', downlines: [] },
-  'playa_official': { name: 'playa_official', company: 'Playa', title: 'Manager', id: 'admin', joinDate: '2023.01.01', bio: 'Concierge', email: 'help@playa.club', phone: '02-1234-5678', upline: null, downlines: [] }
+  'tennis_lover': { name: 'tennis_lover', company: 'Ace Sports', title: 'Pro', id: 'user_005', joinDate: '2023.08.01', bio: 'Tennis is Life 🎾', email: 'tennis@ace.com', phone: '010-1111-2222', uplines: ['kim_playa'], downlines: [], profileImage: null },
+  'golf_pro': { name: 'golf_pro', company: 'Hole In One', title: 'Director', id: 'user_006', joinDate: '2023.09.10', bio: 'Single Player', email: 'golf@hio.com', phone: '010-3333-4444', uplines: ['kim_playa'], downlines: [], profileImage: null },
+  'user_007': { name: 'user_007', company: 'Seven', title: 'Member', id: 'user_007', joinDate: '2023.10.01', bio: 'Lucky', email: '007@playa.club', phone: '010-7777-7777', uplines: ['kim_playa'], downlines: [], profileImage: null },
+  'user_002': { name: 'user_002', company: 'Two', title: 'Member', id: 'user_002', joinDate: '2023.10.02', bio: 'Second', email: '002@playa.club', phone: '010-2222-2222', uplines: ['kim_playa'], downlines: [], profileImage: null },
+  'user_003': { name: 'user_003', company: 'Three', title: 'Member', id: 'user_003', joinDate: '2023.10.03', bio: 'Third', email: '003@playa.club', phone: '010-3333-3333', uplines: ['kim_playa'], downlines: [], profileImage: null },
+  'playa_official': { name: 'playa_official', company: 'Playa', title: 'Manager', id: 'admin', joinDate: '2023.01.01', bio: 'Concierge', email: 'help@playa.club', phone: '02-1234-5678', uplines: [], downlines: [] }
 };
 
 const MY_RESERVATIONS = [
@@ -73,8 +107,9 @@ const INITIAL_EVENTS = [
     date: '2023-12-01', 
     time: '19:00', 
     location: 'Rooftop Court', 
+    description: 'Experience the thrill of night tennis on our rooftop court. Enjoy cool breezes, city lights, and competitive matches with fellow members. Refreshments will be provided.',
     maxAttendees: 10, 
-    attendees: ['tennis_lover', 'golf_pro', 'user_007'], 
+    attendees: ['tennis_lover', 'golf_pro', 'user_007', 'kim_playa'], 
     image: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&q=80&w=800',
     status: 'upcoming'
   },
@@ -84,6 +119,7 @@ const INITIAL_EVENTS = [
     date: '2023-12-05', 
     time: '18:30', 
     location: 'Bornyon', 
+    description: 'Join us for an exclusive evening of Pinot Noir tasting. Our sommelier has curated a selection of the finest vintages from around the world. Light pairings included.',
     maxAttendees: 20, 
     attendees: ['kim_playa', 'golf_pro'], 
     image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&q=80&w=800',
@@ -95,6 +131,7 @@ const INITIAL_EVENTS = [
     date: '2023-11-10', 
     time: '20:00', 
     location: 'Lounge', 
+    description: 'Connect with other members in a relaxed atmosphere. This is a great opportunity to expand your network and make new friends within the Playa community.',
     maxAttendees: 50, 
     attendees: ['kim_playa', 'tennis_lover', 'golf_pro', 'user_002', 'user_003'], 
     image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800',
@@ -172,8 +209,6 @@ const INITIAL_CHATS = [
   { id: 1, sender: 'admin', text: '안녕하십니까, 김플라님. Playa 컨시어지입니다.\n무엇을 도와드릴까요?', timestamp: '10:00 AM' },
 ];
 
-const ADMIN_USER = { id: 'admin', name: 'playa_official', role: 'admin', profileImage: null };
-
 // --- HELPERS ---
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -216,7 +251,7 @@ const NotificationDrawer = ({ isOpen, onClose }) => {
           <span className="font-bold text-slate-900 text-lg">Notifications</span>
           <button onClick={onClose}><X size={24} className="text-slate-400 hover:text-slate-900" /></button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
           {NOTIFICATIONS.map((notif) => (
             <div key={notif.id} className={`flex gap-3 p-3 rounded-xl border ${notif.read ? 'bg-white border-gray-100' : 'bg-blue-50 border-blue-100'}`}>
               <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${notif.read ? 'bg-gray-300' : 'bg-[#0095f6]'}`}></div>
@@ -316,7 +351,7 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
           <span className="font-bold text-slate-900">Comments</span>
           <button onClick={onClose} className="absolute right-4 text-slate-900 p-2"><X size={24} strokeWidth={1.5} /></button>
         </div>
-        <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white pb-24">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto bg-white pb-24 custom-scrollbar">
           {post && (
             <>
               <div className="border-b border-gray-100 pb-2 mb-2">
@@ -352,117 +387,203 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
   );
 };
 
-// Event Attendees Modal
-const EventAttendeesModal = ({ event, onClose }) => {
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-fadeIn" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-scaleIn relative" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-           <h3 className="font-bold text-slate-900">Attendees ({event.attendees.length})</h3>
-           <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-slate-900"/></button>
-        </div>
-        <div className="p-4 max-h-60 overflow-y-auto space-y-3">
-          {event.attendees.map((name, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">
-                {name[0]}
-              </div>
-              <span className="text-sm font-medium text-slate-800">{name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// User Profile Popup
-const UserProfilePopup = ({ userName, currentUser, onClose, onUpdateProfile }) => {
+// Profile Drawer (Right Side Slide-in)
+const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({});
+  const [editData, setEditData] = useState({ ...user });
+  const [isVisible, setIsVisible] = useState(false);
   const fileInputRef = useRef(null);
-  let user = OTHER_USERS[userName];
-  const isMe = userName === currentUser.name;
-  if (isMe) { user = currentUser; } else if (!user) { user = { name: userName, company: 'Member', title: '-', id: 'unknown', joinDate: '2023.01.01', bio: 'Playa Member', email: '-', phone: '-', upline: null, downlines: [] }; }
-  useEffect(() => { if (isMe) setEditData({ ...currentUser }); }, [isMe, currentUser]);
-  const handleSave = () => { onUpdateProfile(editData); setIsEditing(false); };
-  const handleImageChange = (e) => { const file = e.target.files[0]; if (file) { const imageUrl = URL.createObjectURL(file); setEditData({ ...editData, profileImage: imageUrl }); } };
+
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => setIsVisible(true));
+    } else {
+      setIsVisible(false);
+    }
+  }, [isOpen]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setEditData({ ...editData, profileImage: imageUrl });
+    }
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(editData);
+    setIsEditing(false);
+  };
+
+  if (!isOpen && !isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-fadeIn" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-scaleIn relative border border-white/20 max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-4 border-b border-gray-100">
-          {isMe && !isEditing ? <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-sm px-2 hover:bg-blue-50 rounded">Edit</button> : <div className="w-8"></div>}
-          <h3 className="font-bold text-slate-900">{isEditing ? 'Edit Profile' : 'Profile'}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 p-2"><X size={20} /></button>
-        </div>
-        <div className="p-8 overflow-y-auto flex-1">
-          <div className="text-center relative">
-            <div className="w-24 h-24 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group">
-              {isEditing ? (
-                <div onClick={() => fileInputRef.current.click()} className="cursor-pointer w-full h-full rounded-full overflow-hidden relative">
-                  {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover opacity-80" /> : <span className="flex items-center justify-center w-full h-full">{editData.name?.[0]}</span>}
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center"><Camera className="text-white" size={24} /></div>
-                  <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-                </div>
-              ) : (user.profileImage ? <img src={user.profileImage} className="w-full h-full rounded-full object-cover" /> : user.name[0])}
-            </div>
-            {!isEditing && (<><h3 className="text-xl font-bold text-slate-900 font-serif tracking-wide">{user.name}</h3><p className="text-slate-500 text-xs font-medium mt-1 uppercase tracking-wider">{user.company} • {user.title}</p><p className="text-slate-600 text-sm mt-6 font-serif italic leading-relaxed">"{user.bio}"</p></>)}
-          </div>
+    <>
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 pt-[calc(env(safe-area-inset-top)+12px)]">
+          {isEditing ? <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button> : <div className="w-8"></div>}
+          <h3 className="font-bold text-slate-900">Profile</h3>
           {isEditing ? (
-            <div className="mt-6 space-y-4 animate-fadeIn">
-              <div><label className="text-[10px] uppercase font-bold text-slate-400">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-300 py-2 text-base focus:outline-none focus:border-emerald-600" /></div>
+            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
+          ) : (
+            <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1">Edit</button>
+          )}
+        </div>
+        
+        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="text-center mb-8 relative">
+             <div className="w-32 h-32 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden"
+                 onClick={() => fileInputRef.current.click()}>
+               <div className="cursor-pointer w-full h-full flex items-center justify-center transition-colors relative">
+                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
+                   <div className="absolute inset-0 bg-black/10 flex items-center justify-center transition-opacity group-hover:opacity-100">
+                      <Camera className="text-white drop-shadow-md" size={28} />
+                   </div>
+                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+               </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
+            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
+            {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
+          </div>
+
+          {isEditing ? (
+            <div className="space-y-4 animate-fadeIn">
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-[10px] uppercase font-bold text-slate-400">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-300 py-2 text-base focus:outline-none focus:border-emerald-600" /></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-400">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-300 py-2 text-base focus:outline-none focus:border-emerald-600" /></div>
+                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
               </div>
-              <div><label className="text-[10px] uppercase font-bold text-slate-400">Email</label><input type="email" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-300 py-2 text-base focus:outline-none focus:border-emerald-600" /></div>
-              <div><label className="text-[10px] uppercase font-bold text-slate-400">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-300 py-2 text-base focus:outline-none focus:border-emerald-600" /></div>
-              <div className="flex gap-3 pt-4"><button onClick={() => setIsEditing(false)} className="flex-1 py-3 border border-slate-200 rounded-xl text-xs font-bold uppercase hover:bg-slate-50">Cancel</button><button onClick={handleSave} className="flex-1 py-3 bg-[#0095f6] text-white rounded-xl text-xs font-bold uppercase hover:bg-[#1877f2] shadow-lg">Save</button></div>
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
             </div>
           ) : (
-            <div className="mt-6 space-y-4 border-t border-slate-100 pt-6">
-              <div className="flex justify-between items-center"><span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Calendar size={14} /> Joined</span><div className="text-right flex items-center gap-2"><span className="text-xs text-slate-800 font-medium block">{user.joinDate}</span><span className="text-[10px] text-[#0095f6] font-bold bg-blue-50 px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div></div>
-              <div className="flex justify-between items-start"><span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2 mt-1"><Phone size={14} /> Contact</span><div className="text-right space-y-1"><span className="text-xs text-slate-800 block font-medium">{user.email}</span><span className="text-xs text-slate-500 block">{user.phone}</span></div></div>
-              {user.role !== 'admin' && (<div className="pt-2"><div className="flex justify-between items-center mb-3"><span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Users size={14} /> Network</span><span className="text-xs text-slate-800 font-bold">Upline: {user.upline || 'Founder'}</span></div><div className="bg-slate-50 rounded-xl p-3"><div className="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Downlines ({user.downlines ? user.downlines.length : 0})</div>{user.downlines && user.downlines.length > 0 ? (<div className="flex flex-wrap gap-2">{user.downlines.map((downUser, idx) => (<div key={idx} className="bg-white border border-slate-200 px-2 py-1 rounded-md text-[10px] text-slate-600 font-medium shadow-sm">{downUser}</div>))}</div>) : (<div className="text-xs text-slate-400 italic">No downline members yet.</div>)}</div></div>)}
+            <div className="space-y-6">
+               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
+                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                   <span className="text-sm text-slate-700 font-bold">Joined</span>
+                   <div className="text-right flex items-center gap-2"><span className="text-sm text-slate-700">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
+                 </div>
+                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                   <span className="text-sm text-slate-700 font-bold">Email</span><span className="text-sm text-slate-700">{user.email}</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                   <span className="text-sm text-slate-700 font-bold">Phone</span><span className="text-sm text-slate-700">{user.phone}</span>
+                 </div>
+               </div>
+
+               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100 space-y-4">
+                 <div>
+                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Uplines</div>
+                   <div className="flex flex-wrap gap-2">
+                      {user.uplines && user.uplines.length > 0 ? user.uplines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>) : <span className="text-xs text-slate-400 italic">No upline</span>}
+                   </div>
+                 </div>
+                 <div>
+                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
+                   <div className="flex flex-wrap gap-2">
+                     {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
+                   </div>
+                 </div>
+               </div>
+               
+               <button onClick={onLogout} className="text-xs text-slate-400 mt-8 block mx-auto hover:text-slate-600 transition-colors">Sign Out</button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
-// Create Post Modal
-const CreatePostModal = ({ user, onClose, onCreate }) => {
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('free');
-  const [images, setImages] = useState([]);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const handleImageUpload = () => { if (images.length >= 4) return alert('Max 4 images'); setImages([...images, 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&q=80&w=800']); };
-  const handleSubmit = () => { if (!content && images.length === 0) return; onCreate({ content, category, images }); onClose(); };
-  const handleBackdropClick = () => { if (content || images.length > 0) { setShowExitConfirm(true); } else { onClose(); } };
-  const availableCategories = FEED_CATEGORIES.filter(c => c.id !== 'all').filter(c => { if (user.role === 'admin') return true; return !c.adminOnly; });
+// Event Detail Drawer
+const EventDrawer = ({ event, onClose, toggleJoin }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (event) {
+      requestAnimationFrame(() => setIsVisible(true));
+    } else {
+      setIsVisible(false);
+    }
+  }, [event]);
+
+  if (!event && !isVisible) return null;
+  
+  const allUsers = [INITIAL_USER, ...Object.values(OTHER_USERS)];
+  const attendees = allUsers.filter(u => event.attendees.includes(u.name));
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4 animate-fadeIn" onClick={handleBackdropClick}>
-      <div className="bg-white w-full max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[90vh] relative" onClick={e => e.stopPropagation()}>
-        {showExitConfirm && (
-          <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center animate-fadeIn" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Discard Post?</h3>
-            <div className="flex flex-col w-full gap-3 mt-4"><button onClick={onClose} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm">Discard</button><button onClick={() => setShowExitConfirm(false)} className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm">Keep Editing</button></div>
-          </div>
-        )}
-        <div className="h-12 border-b border-gray-200 flex items-center justify-center relative px-4 font-bold text-slate-900">
-          <button onClick={handleBackdropClick} className="text-slate-900 absolute left-4 text-sm font-normal p-2">Cancel</button><span className="text-sm">New Post</span><button onClick={handleSubmit} className="text-[#0095f6] absolute right-4 text-sm font-medium p-2">Post</button>
+    <>
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 pt-[env(safe-area-inset-top)]">
+           <h3 className="font-bold text-slate-900 text-lg truncate px-2">{event.title}</h3>
+           <button onClick={onClose} className="p-1"><X size={24} className="text-slate-500 hover:text-slate-900" /></button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex gap-4 mb-6"><div className="w-10 h-10 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold">{user.name[0]}</div><textarea className="flex-1 resize-none outline-none text-base placeholder-gray-400 h-32" placeholder="Write a caption..." value={content} onChange={e => setContent(e.target.value)} /></div>
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">{images.map((img, i) => (<div key={i} className="relative w-32 h-32 flex-shrink-0"><img src={img} className="w-full h-full object-cover rounded-md" /><button onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><X size={12} /></button></div>))}{images.length < 4 && <button onClick={handleImageUpload} className="w-32 h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 flex-shrink-0"><ImageIcon size={24} /><span className="text-xs mt-1">Add Photo</span></button>}</div>
-          <div className="border-t border-gray-100 pt-4"><label className="block text-xs font-bold text-gray-500 mb-3 uppercase">Category</label><div className="flex flex-wrap gap-2">{availableCategories.map(cat => (<button key={cat.id} onClick={() => setCategory(cat.id)} className={`px-4 py-2 rounded-full text-xs font-medium border transition-all ${category === cat.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-gray-200 hover:border-gray-400'}`}>{cat.label}</button>))}</div></div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+           {/* Main Image */}
+           <div className="w-full h-64 relative">
+              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
+                 <div className="flex items-center gap-2 text-white">
+                    <Calendar size={16} />
+                    <span className="text-sm font-medium">{event.date} {event.time}</span>
+                 </div>
+                 <div className="flex items-center gap-2 text-white mt-1">
+                    <MapPin size={16} />
+                    <span className="text-sm font-medium">{event.location}</span>
+                 </div>
+              </div>
+           </div>
+
+           {/* Description */}
+           <div className="p-6 border-b border-gray-100 w-[85%] mx-auto">
+              <h4 className="text-sm font-bold text-slate-900 uppercase mb-2">About this event</h4>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {event.description || "Join us for this exclusive event. Meet other members and enjoy a curated experience designed just for you."}
+              </p>
+           </div>
+
+           {/* Attendees */}
+           <div className="p-6 pb-24 w-[85%] mx-auto">
+              <h4 className="text-sm font-bold text-slate-900 uppercase mb-4 flex justify-between items-center">
+                 Attendees 
+                 <span className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-500">{event.attendees.length}/{event.maxAttendees}</span>
+              </h4>
+              <div className="space-y-3">
+                 {attendees.length > 0 ? attendees.map((u, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden">
+                          {u.profileImage ? <img src={u.profileImage} className="w-full h-full object-cover"/> : <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-500">{u.name[0]}</div>}
+                       </div>
+                       <div>
+                          <div className="text-sm font-bold text-slate-900">{u.name}</div>
+                          <div className="text-xs text-slate-500">{u.company} • {u.title}</div>
+                       </div>
+                    </div>
+                 )) : (
+                   <div className="text-center py-4 text-sm text-slate-400 italic">Be the first to join!</div>
+                 )}
+              </div>
+           </div>
+        </div>
+
+        {/* Footer Action */}
+        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-[env(safe-area-inset-bottom)]">
+           <button 
+             onClick={() => { toggleJoin(event.id); }}
+             className={`w-full py-3.5 rounded-xl font-bold text-sm transition-colors shadow-lg ${event.attendees.includes(INITIAL_USER.name) ? 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-[#0095f6] text-white hover:bg-[#1877f2]'}`}
+           >
+             {event.attendees.includes(INITIAL_USER.name) ? 'Leave Event' : 'Join Event'}
+           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -505,7 +626,7 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
   };
 
   return (
-    <div ref={containerRef} onScroll={handleScroll} className="bg-white min-h-full relative pb-6 h-full overflow-y-auto">
+    <div ref={containerRef} onScroll={handleScroll} className="bg-white min-h-full relative pb-6 h-full overflow-y-auto custom-scrollbar">
       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-10 border-b border-gray-100">
         <div className="flex overflow-x-auto px-4 gap-6 scrollbar-hide">
           {FEED_CATEGORIES.map((cat) => (
@@ -565,6 +686,7 @@ const ReservationSection = () => {
   const handleDateSelect = (date) => { setCurrentDate(date); setIsCalendarOpen(false); };
   const isSlotBooked = (time) => { const hash = (time.charCodeAt(0) + selectedFacility.id.length + selectedDateStr.slice(-1)) % 7; return hash === 0; };
   const toggleSlot = (time) => { if (isSlotBooked(time)) return; if (selectedSlots.includes(time)) setSelectedSlots(selectedSlots.filter(t => t !== time)); else setSelectedSlots([...selectedSlots, time]); };
+  
   const CalendarModal = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -574,7 +696,7 @@ const ReservationSection = () => {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fadeIn p-6" onClick={() => setIsCalendarOpen(false)}>
         <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-xs border border-gray-100" onClick={e => e.stopPropagation()}>
-          <div className="flex justify-between items-center mb-6"><h3 className="text-lg font-bold text-slate-900">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3><button onClick={() => setIsCalendarOpen(false)}><X size={20} className="text-slate-400 hover:text-slate-900"/></button></div>
+          <div className="flex justify-between items-center mb-6"><h3 className="text-lg font-bold text-slate-900">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3><div className="flex gap-2"><button onClick={() => {const d = new Date(currentDate); d.setMonth(d.getMonth()-1); setCurrentDate(d)}} className="p-1 hover:bg-gray-100 rounded"><ChevronLeft size={20} /></button><button onClick={() => {const d = new Date(currentDate); d.setMonth(d.getMonth()+1); setCurrentDate(d)}} className="p-1 hover:bg-gray-100 rounded"><ChevronRight size={20} /></button></div></div>
           <div className="grid grid-cols-7 gap-2 text-center mb-2">{['S','M','T','W','T','F','S'].map(d => <div key={d} className="text-[10px] font-bold text-slate-400">{d}</div>)}</div>
           <div className="grid grid-cols-7 gap-2">{Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}{days.map(d => { const dateObj = new Date(year, month, d); const dateStr = formatDate(dateObj); const isPast = dateStr < todayStr; const isSelected = dateStr === selectedDateStr; return <button key={d} disabled={isPast} onClick={() => handleDateSelect(dateObj)} className={`h-9 w-9 rounded-full flex items-center justify-center text-xs transition-all ${isSelected ? 'bg-black text-white font-bold shadow-md' : ''} ${isPast ? 'text-gray-200 cursor-not-allowed' : 'text-slate-700 hover:bg-gray-100'}`}>{d}</button>; })}</div>
         </div>
@@ -595,16 +717,16 @@ const ReservationSection = () => {
   );
 
   return (
-    <div className="pb-24 pt-0 px-4 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto">
+    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
       {isCalendarOpen && <CalendarModal />}
       
-      {/* Top Tabs (Fixed Layout) */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 flex mb-4 px-2">
+      {/* Top Tabs Fixed Grid */}
+      <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-3 mb-4 px-0">
         {['status', 'reserve', 'guide'].map(tab => (
             <button 
               key={tab}
               onClick={() => setBookTab(tab)} 
-              className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative ${bookTab === tab ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`py-3 text-xs font-bold uppercase tracking-wider transition-colors relative text-center ${bookTab === tab ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}
             >
               {tab === 'status' ? 'My Status' : tab === 'reserve' ? 'New Reservation' : 'Guide'}
               {bookTab === tab && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0095f6]"></div>}
@@ -612,7 +734,7 @@ const ReservationSection = () => {
         ))}
       </div>
 
-      <div className="pt-4">
+      <div className="pt-4 w-[85%] mx-auto">
         {bookTab === 'status' && (
             <div className="space-y-4 animate-fadeIn">
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
@@ -699,54 +821,88 @@ const ReservationSection = () => {
 // Event Section
 const EventSection = () => {
   const [eventTab, setEventTab] = useState('upcoming');
-  const [attendeeModalOpen, setAttendeeModalOpen] = useState(null);
-  const [events, setEvents] = useState(INITIAL_EVENTS); // Mock events data needed
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [events, setEvents] = useState(INITIAL_EVENTS);
 
-  // Mock toggle join
   const toggleJoin = (eventId) => {
-     // ... logic to toggle join
-     alert("Event joined/left!");
+    const targetEvent = events.find(e => e.id === eventId);
+    if (!targetEvent) return;
+    
+    const isJoined = targetEvent.attendees.includes(INITIAL_USER.name);
+    const updatedEvents = events.map(e => {
+      if (e.id === eventId) {
+        return {
+          ...e,
+          attendees: isJoined 
+            ? e.attendees.filter(name => name !== INITIAL_USER.name)
+            : [...e.attendees, INITIAL_USER.name]
+        };
+      }
+      return e;
+    });
+    setEvents(updatedEvents);
+    if (selectedEvent && selectedEvent.id === eventId) {
+        const updatedSelected = updatedEvents.find(e => e.id === eventId);
+        setSelectedEvent(updatedSelected);
+    }
   };
 
   const filteredEvents = events.filter(e => e.status === eventTab);
 
   return (
-    <div className="pb-24 pt-0 px-4 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto">
-       {attendeeModalOpen && <EventAttendeesModal event={attendeeModalOpen} onClose={() => setAttendeeModalOpen(null)} />}
+    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
+       {selectedEvent && <EventDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} toggleJoin={toggleJoin} />}
 
        {/* Tabs */}
-       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-2 border-b border-gray-100 flex gap-2 mb-4">
-         <button onClick={() => setEventTab('upcoming')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${eventTab === 'upcoming' ? 'text-[#0095f6] border-[#0095f6]' : 'text-gray-400 border-transparent'}`}>Upcoming</button>
-         <button onClick={() => setEventTab('past')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${eventTab === 'past' ? 'text-[#0095f6] border-[#0095f6]' : 'text-gray-400 border-transparent'}`}>Past</button>
+       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-2 mb-4 px-0">
+         <button onClick={() => setEventTab('upcoming')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative text-center ${eventTab === 'upcoming' ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}>
+            Upcoming
+            {eventTab === 'upcoming' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0095f6]"></div>}
+         </button>
+         <button onClick={() => setEventTab('past')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative text-center ${eventTab === 'past' ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}>
+            Past
+            {eventTab === 'past' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0095f6]"></div>}
+         </button>
        </div>
 
-       <div className="space-y-4">
+       <div className="space-y-4 pt-4 w-[85%] mx-auto">
          {filteredEvents.map(event => (
-           <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-              <div className="h-40 relative">
-                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
-                  {event.attendees.length}/{event.maxAttendees} Joined
+           <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer group" onClick={() => setSelectedEvent(event)}>
+              <div className="h-40 relative overflow-hidden">
+                <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {/* Attendee Thumbnails Overlay */}
+                <div className="absolute bottom-2 left-2 flex items-center">
+                   <div className="flex -space-x-2">
+                     {event.attendees.slice(0, 4).map((name, i) => {
+                        let userImg = null;
+                        if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
+                        else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
+
+                        return (
+                            <div key={i} className="w-6 h-6 rounded-full border border-white bg-gray-200 overflow-hidden flex items-center justify-center text-[8px] font-bold text-gray-500">
+                                {userImg ? <img src={userImg} className="w-full h-full object-cover" /> : name[0]}
+                            </div>
+                        )
+                     })}
+                     {event.attendees.length > 4 && (
+                         <div className="w-6 h-6 rounded-full border border-white bg-gray-800 flex items-center justify-center text-[8px] font-bold text-white">
+                             +{event.attendees.length - 4}
+                         </div>
+                     )}
+                   </div>
                 </div>
               </div>
               <div className="p-5">
-                 <div className="flex justify-between items-start mb-2">
+                 <div className="flex justify-between items-start mb-1">
                    <div>
                      <h3 className="font-bold text-slate-900 text-lg mb-1">{event.title}</h3>
                      <p className="text-xs text-slate-500 flex items-center gap-1"><Calendar size={12}/> {event.date} {event.time}</p>
                      <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={12}/> {event.location}</p>
                    </div>
-                   {event.status === 'upcoming' && (
-                     <button onClick={() => toggleJoin(event.id)} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold">Join</button>
-                   )}
                  </div>
-                 <div className="border-t border-gray-100 pt-3 mt-3">
-                    <button 
-                      onClick={() => setAttendeeModalOpen(event)}
-                      className="text-[11px] text-[#0095f6] font-bold flex items-center gap-1"
-                    >
-                      <Users size={12}/> View Attendees
-                    </button>
+                 {/* Joined Count Tag below location */}
+                 <div className="mt-2 inline-block bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded">
+                    {event.attendees.length}/{event.maxAttendees} Joined
                  </div>
               </div>
            </div>
@@ -782,7 +938,7 @@ const InquirySection = () => {
   return (
     <div className="flex flex-col h-full bg-slate-50 font-sans animate-fadeIn transition-opacity duration-500 relative">
       {/* Chat Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col custom-scrollbar">
          <div className="flex-1"></div>
         {messages.map(m => (
           <div key={m.id} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -795,7 +951,7 @@ const InquirySection = () => {
       {/* Input Area - Sticky above Nav */}
       <div className="p-3 bg-white border-t border-slate-200 w-full flex-shrink-0 sticky bottom-0 z-20">
         <div className="flex gap-2 items-end mb-0">
-          <textarea ref={textareaRef} value={text} onChange={e => setText(e.target.value)} onKeyPress={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())} className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 px-4 py-3 text-base focus:outline-none focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800 rounded-2xl shadow-inner font-medium resize-none overflow-hidden" placeholder="Message..." rows={1} />
+          <textarea ref={textareaRef} value={text} onChange={e => setText(e.target.value)} onKeyPress={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())} className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 px-4 py-3 text-base focus:outline-none focus:border-[#0095f6] focus:ring-1 focus:ring-[#0095f6] rounded-2xl shadow-inner font-medium resize-none overflow-hidden" placeholder="Message..." rows={1} />
           <button onClick={send} disabled={!text.trim()} className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg mb-1 flex-shrink-0 transition-colors ${text.trim() ? 'bg-[#0095f6] text-white' : 'bg-slate-200 text-gray-400'}`}><Send size={16} /></button>
         </div>
       </div>
@@ -824,97 +980,6 @@ const PassSection = ({ user }) => {
   );
 };
 
-// Profile Section (Full Page)
-const ProfileSection = ({ user, onLogout, onUpdateProfile }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ ...user });
-  const fileInputRef = useRef(null);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setEditData({ ...editData, profileImage: imageUrl });
-    }
-  };
-
-  const handleSave = () => {
-    onUpdateProfile(editData);
-    setIsEditing(false);
-  };
-
-  return (
-    <div className="bg-white min-h-full relative h-full overflow-y-auto pb-24">
-      {/* Profile Header & Actions */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 p-4 flex justify-between items-center">
-        <h2 className="font-bold text-slate-900">My Profile</h2>
-        {isEditing ? (
-          <div className="flex gap-3">
-            <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button>
-            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
-          </div>
-        ) : (
-          <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1"><Edit2 size={14}/> Edit</button>
-        )}
-      </div>
-
-      <div className="p-6">
-        <div className="text-center mb-8 relative">
-          <div className="w-28 h-28 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden">
-             {isEditing ? (
-                <div onClick={() => fileInputRef.current.click()} className="cursor-pointer w-full h-full flex items-center justify-center bg-black/5 hover:bg-black/10 transition-colors">
-                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover opacity-50" /> : <span className="text-slate-300">{editData.name[0]}</span>}
-                   <Camera className="text-slate-600 absolute" size={24} />
-                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-                </div>
-             ) : (
-                user.profileImage ? <img src={user.profileImage} className="w-full h-full object-cover" /> : user.name[0]
-             )}
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
-          {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
-        </div>
-
-        {isEditing ? (
-          <div className="space-y-4 animate-fadeIn">
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            </div>
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
-               <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                 <span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Calendar size={14}/> Joined</span>
-                 <div className="text-right flex items-center gap-2"><span className="text-sm font-bold text-slate-800">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
-               </div>
-               <div className="space-y-2">
-                 <div className="flex justify-between"><span className="text-xs text-slate-500">Email</span><span className="text-xs font-medium text-slate-900">{user.email}</span></div>
-                 <div className="flex justify-between"><span className="text-xs text-slate-500">Phone</span><span className="text-xs font-medium text-slate-900">{user.phone}</span></div>
-               </div>
-             </div>
-
-             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
-               <div className="flex justify-between items-center mb-3"><span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Users size={14}/> Network</span><span className="text-xs font-bold text-slate-800">Upline: {user.upline || 'Founder'}</span></div>
-               <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
-               <div className="flex flex-wrap gap-2">
-                 {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
-               </div>
-             </div>
-             
-             <button onClick={onLogout} className="w-full py-3 border border-rose-100 text-rose-500 rounded-xl text-xs font-bold uppercase hover:bg-rose-50 transition-colors flex items-center justify-center gap-2"><LogOut size={14} /> Sign Out</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // Main App
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -929,19 +994,20 @@ const App = () => {
   const [viewingImage, setViewingImage] = useState(null);
   const [feedScrollPos, setFeedScrollPos] = useState(0); 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const scrollPosRef = useRef(0);
 
+  // Reorganized Bottom Menu
   const menuItems = [
     { id: 'feed', icon: Layout, label: 'Feed' },
     { id: 'book', icon: Calendar, label: 'Book' },
-    { id: 'event', icon: PartyPopper, label: 'Event' }, // New Event Tab
+    { id: 'event', icon: Ticket, label: 'Event' }, // Changed to Ticket
     { id: 'chat', icon: MessageCircle, label: 'Concierge' },
     { id: 'pass', icon: QrCode, label: 'Pass' },
-    { id: 'profile', icon: User, label: 'Profile' },
   ];
 
   const handleLogin = (admin) => { setIsLoggedIn(true); setIsAdmin(admin); setCurrentUser(admin ? ADMIN_USER : INITIAL_USER); };
-  const handleLogout = () => { setIsLoggedIn(false); setIsAdmin(false); setActiveTab('feed'); };
+  const handleLogout = () => { setIsLoggedIn(false); setIsAdmin(false); setActiveTab('feed'); setIsProfileOpen(false); };
   const handleUpdateProfile = (updatedUser) => { setCurrentUser(updatedUser); };
 
   useLayoutEffect(() => {
@@ -988,7 +1054,6 @@ const App = () => {
       case 'event': return <EventSection />; // New Event Section
       case 'chat': return <InquirySection />;
       case 'pass': return <PassSection user={currentUser} />;
-      case 'profile': return <ProfileSection user={currentUser} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />;
       default: return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} />;
     }
   };
@@ -1003,14 +1068,23 @@ const App = () => {
         {viewingImage && <ImageViewer images={viewingImage.images} initialIndex={viewingImage.index} onClose={() => setViewingImage(null)} />}
         <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} />
         <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
+        
+        {/* Profile Drawer (New UX) */}
+        <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={currentUser} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />
 
         {/* Header (Fixed Top) */}
         <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 h-auto min-h-[50px] flex items-center justify-between px-4 z-30 flex-shrink-0 pt-[env(safe-area-inset-top)] pb-2 box-content w-full">
           <h1 className="text-xl font-bold text-slate-900 cursor-pointer pt-2" style={{ fontFamily: "'Billabong', cursive" }} onClick={() => handleTabChange('feed')}>Playa</h1>
-          <button onClick={() => setIsNotificationOpen(true)} className="p-2 hover:bg-gray-50 rounded-full transition-colors relative mr-2">
-            <Bell size={24} strokeWidth={1.5} className="text-slate-900" />
-            <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </button>
+          <div className="flex items-center gap-3 pt-2 pr-8">
+             <button onClick={() => setIsNotificationOpen(true)} className="p-2 hover:bg-gray-50 rounded-full transition-colors relative">
+               <Bell size={24} strokeWidth={1.5} className="text-slate-900" />
+               <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+             </button>
+             {/* Profile Thumbnail - Triggers Drawer */}
+             <button onClick={() => setIsProfileOpen(true)} className="w-9 h-9 rounded-full bg-gray-200 overflow-hidden border border-gray-200 cursor-pointer">
+                {currentUser.profileImage ? <img src={currentUser.profileImage} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-gray-500 font-bold">{currentUser.name[0]}</div>}
+             </button>
+          </div>
         </header>
 
         {/* Main Content Area (Flex Grow, Scrollable independently) */}
@@ -1021,7 +1095,7 @@ const App = () => {
         >
           {renderContent()}
 
-          {/* Fixed FAB for Feed - Absolute to Main Container */}
+          {/* Fixed FAB for Feed */}
           {activeTab === 'feed' && (
             <button 
               onClick={() => setIsCreatingPost(true)}

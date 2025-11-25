@@ -106,7 +106,7 @@ const INITIAL_EVENTS = [
   { 
     id: 1, 
     title: 'Summer Night Tennis', 
-    date: '2023-12-01', 
+    date: '2025-12-01', // Future date
     time: '19:00', 
     location: 'Rooftop Court', 
     description: 'Experience the thrill of night tennis on our rooftop court. Enjoy cool breezes, city lights, and competitive matches with fellow members. Refreshments will be provided.',
@@ -118,7 +118,7 @@ const INITIAL_EVENTS = [
   { 
     id: 2, 
     title: 'Wine Tasting: Pinot Noir', 
-    date: '2023-12-05', 
+    date: '2025-12-05', // Future date
     time: '18:30', 
     location: 'Bornyon', 
     description: 'Join us for an exclusive evening of Pinot Noir tasting. Our sommelier has curated a selection of the finest vintages from around the world. Light pairings included.',
@@ -346,7 +346,7 @@ const ImageViewer = ({ images, initialIndex, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-fadeIn" onClick={onClose}>
-      <button className="absolute top-safe right-4 text-white p-2 bg-black/20 rounded-full backdrop-blur-sm z-20 mt-4" onClick={onClose}><X size={24} /></button>
+      <button className="absolute top-6 right-6 text-white p-2 bg-black/20 rounded-full backdrop-blur-sm z-20" onClick={onClose}><X size={24} /></button>
       <div className="relative w-full h-full flex items-center justify-center" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <img src={images[currentIndex]} className="max-w-full max-h-full object-contain transition-opacity duration-300" onClick={(e) => e.stopPropagation()} alt={`View ${currentIndex + 1}`} />
       </div>
@@ -361,7 +361,7 @@ const ImageViewer = ({ images, initialIndex, onClose }) => {
   )
 };
 
-const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => {
+const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment, onUserClick }) => {
   const [text, setText] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const scrollRef = useRef(null);
@@ -398,8 +398,10 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
               <div className="border-b border-gray-100 pb-2 mb-2">
                 <div className="flex justify-between items-center p-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-[2px] rounded-full"><div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden">{post.author[0]}</div></div>
-                    <span className="text-sm font-bold text-[#262626]">{post.author}</span>
+                    <div className="w-9 h-9 bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-[2px] rounded-full cursor-pointer" onClick={() => onUserClick(post.author)}>
+                      <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden">{post.author[0]}</div>
+                    </div>
+                    <span className="text-sm font-bold text-[#262626] cursor-pointer" onClick={() => onUserClick(post.author)}>{post.author}</span>
                   </div>
                   <MoreHorizontal size={20} className="text-[#262626]" />
                 </div>
@@ -415,7 +417,19 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
                 <div className="px-3 pb-2"><div className="font-bold text-sm text-[#262626] mb-1">{post.likedBy.length > 0 ? `${post.likedBy.length} likes` : 'Be the first to like'}</div>{post.images && post.images.length > 0 && <div className="text-sm text-[#262626] mb-1 leading-relaxed"><span className="font-bold mr-2">{post.author}</span>{post.content}</div>}<div className="text-gray-500 text-xs uppercase mt-1">{post.timestamp}</div></div>
               </div>
               <div className="px-4 pt-2 space-y-5">
-                {post.comments.length === 0 ? <div className="text-center py-10 text-gray-400 text-sm">No comments yet.</div> : post.comments.map((c) => (<div key={c.id} className="flex gap-3"><div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0 border border-gray-100">{c.author[0]}</div><div className="flex-1"><div className="flex gap-2 items-baseline"><span className="text-sm font-bold text-slate-900">{c.author}</span><span className="text-xs text-gray-400">{c.timestamp}</span></div><p className="text-sm text-slate-700 mt-0.5 leading-relaxed whitespace-pre-wrap">{c.text}</p></div><button className="self-start pt-1 text-gray-400 hover:text-red-500"><Heart size={12} /></button></div>))}
+                {post.comments.length === 0 ? <div className="text-center py-10 text-gray-400 text-sm">No comments yet.</div> : post.comments.map((c) => (
+                  <div key={c.id} className="flex gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0 border border-gray-100 cursor-pointer" onClick={() => onUserClick(c.author)}>{c.author[0]}</div>
+                    <div className="flex-1">
+                      <div className="flex gap-2 items-baseline">
+                        <span className="text-sm font-bold text-slate-900 cursor-pointer" onClick={() => onUserClick(c.author)}>{c.author}</span>
+                        <span className="text-xs text-gray-400">{c.timestamp}</span>
+                      </div>
+                      <p className="text-sm text-slate-700 mt-0.5 leading-relaxed whitespace-pre-wrap">{c.text}</p>
+                    </div>
+                    <button className="self-start pt-1 text-gray-400 hover:text-red-500"><Heart size={12} /></button>
+                  </div>
+                ))}
               </div>
             </>
           )}
@@ -431,19 +445,21 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
 // Event Detail Drawer
 const EventDrawer = ({ event, onClose, toggleJoin }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [displayEvent, setDisplayEvent] = useState(event); 
 
   useEffect(() => {
     if (event) {
-      requestAnimationFrame(() => setIsVisible(true));
+        setDisplayEvent(event);
+        requestAnimationFrame(() => setIsVisible(true));
     } else {
       setIsVisible(false);
     }
   }, [event]);
 
-  if (!event && !isVisible) return null;
+  if (!displayEvent && !isVisible) return null;
   
   const allUsers = [INITIAL_USER, ...Object.values(OTHER_USERS)];
-  const attendees = allUsers.filter(u => event.attendees.includes(u.name));
+  const attendees = allUsers.filter(u => displayEvent?.attendees.includes(u.name));
 
   return (
     <>
@@ -451,7 +467,7 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
       <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 pt-[env(safe-area-inset-top)]">
-           <h3 className="font-bold text-slate-900 text-lg truncate px-2">{event.title}</h3>
+           <h3 className="font-bold text-slate-900 text-lg truncate px-2">{displayEvent?.title}</h3>
            <button onClick={onClose} className="p-1"><X size={24} className="text-slate-500 hover:text-slate-900" /></button>
         </div>
 
@@ -459,15 +475,15 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
         <div className="flex-1 overflow-y-auto custom-scrollbar">
            {/* Main Image */}
            <div className="w-full h-64 relative">
-              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+              <img src={displayEvent?.image} alt={displayEvent?.title} className="w-full h-full object-cover" />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
                  <div className="flex items-center gap-2 text-white">
                     <Calendar size={16} />
-                    <span className="text-sm font-medium">{event.date} {event.time}</span>
+                    <span className="text-sm font-medium">{displayEvent?.date} {displayEvent?.time}</span>
                  </div>
                  <div className="flex items-center gap-2 text-white mt-1">
                     <MapPin size={16} />
-                    <span className="text-sm font-medium">{event.location}</span>
+                    <span className="text-sm font-medium">{displayEvent?.location}</span>
                  </div>
               </div>
            </div>
@@ -476,7 +492,7 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
            <div className="p-6 border-b border-gray-100 w-[85%] mx-auto">
               <h4 className="text-sm font-bold text-slate-900 uppercase mb-2">About this event</h4>
               <p className="text-sm text-slate-600 leading-relaxed">
-                {event.description || "Join us for this exclusive event. Meet other members and enjoy a curated experience designed just for you."}
+                {displayEvent?.description || "Join us for this exclusive event. Meet other members and enjoy a curated experience designed just for you."}
               </p>
            </div>
 
@@ -484,7 +500,7 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
            <div className="p-6 pb-24 w-[85%] mx-auto">
               <h4 className="text-sm font-bold text-slate-900 uppercase mb-4 flex justify-between items-center">
                  Attendees 
-                 <span className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-500">{event.attendees.length}/{event.maxAttendees}</span>
+                 <span className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-500">{displayEvent?.attendees.length}/{displayEvent?.maxAttendees}</span>
               </h4>
               <div className="space-y-3">
                  {attendees.length > 0 ? attendees.map((u, idx) => (
@@ -507,10 +523,10 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
         {/* Footer Action */}
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-[env(safe-area-inset-bottom)]">
            <button 
-             onClick={() => { toggleJoin(event.id); }}
-             className={`w-full py-3.5 rounded-xl font-bold text-sm transition-colors shadow-lg ${event.attendees.includes(INITIAL_USER.name) ? 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-[#0095f6] text-white hover:bg-[#1877f2]'}`}
+             onClick={() => { toggleJoin(displayEvent?.id); }}
+             className={`w-full py-3.5 rounded-xl font-bold text-sm transition-colors shadow-lg ${displayEvent?.attendees.includes(INITIAL_USER.name) ? 'bg-white border border-slate-200 text-slate-900 hover:bg-slate-50' : 'bg-[#0095f6] text-white hover:bg-[#1877f2]'}`}
            >
-             {event.attendees.includes(INITIAL_USER.name) ? 'Leave Event' : 'Join Event'}
+             {displayEvent?.attendees.includes(INITIAL_USER.name) ? 'Leave Event' : 'Join Event'}
            </button>
         </div>
       </div>
@@ -636,6 +652,7 @@ const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile, isMe 
 
 // Create Post Modal
 const CreatePostModal = ({ user, onClose, onCreate }) => {
+  // ... (Same logic)
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('free');
   const [images, setImages] = useState([]);
@@ -694,8 +711,19 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const containerRef = useRef(null);
 
-  useLayoutEffect(() => { if (containerRef.current && scrollPosRef) containerRef.current.scrollTop = scrollPosRef.current; }, [scrollPosRef]);
-  const handleScroll = (e) => { if (scrollPosRef) scrollPosRef.current = e.target.scrollTop; };
+  // Use ref to restore scroll position without re-triggering scroll
+  useLayoutEffect(() => {
+    if (containerRef.current && scrollPosRef.current !== undefined) {
+      containerRef.current.scrollTop = scrollPosRef.current;
+    }
+  }, []); // Run once on mount
+
+  const handleScroll = (e) => {
+    if (scrollPosRef) {
+      scrollPosRef.current = e.target.scrollTop;
+    }
+  };
+
   const toggleLike = (postId) => { setPosts(posts.map(p => p.id === postId ? { ...p, likedBy: p.likedBy.includes(user.name) ? p.likedBy.filter(u => u !== user.name) : [...p.likedBy, user.name] } : p)); };
   const filteredPosts = activeTab === 'all' ? posts : posts.filter(p => p.category === activeTab);
   const [currentImageIndices, setCurrentImageIndices] = useState({});
@@ -720,10 +748,10 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
           return (
             <div key={post.id} className="border-b border-gray-100 pb-4 mb-2">
               <div className="flex justify-between items-center p-3">
-                <button onClick={() => onUserClick(post.author)} className="flex items-center gap-2">
-                  <div className="w-9 h-9 bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-[2px] rounded-full"><div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden">{post.author[0]}</div></div>
-                  <div className="flex items-center gap-2"><span className="text-sm font-bold text-[#262626]">{post.author}</span><span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium uppercase">{post.category}</span></div>
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 bg-gradient-to-tr from-yellow-400 to-fuchsia-600 p-[2px] rounded-full cursor-pointer" onClick={() => onUserClick(post.author)}><div className="w-full h-full bg-white rounded-full flex items-center justify-center text-[10px] font-bold overflow-hidden">{post.author[0]}</div></div>
+                  <div className="flex items-center gap-2"><span className="text-sm font-bold text-[#262626] cursor-pointer" onClick={() => onUserClick(post.author)}>{post.author}</span><span className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium uppercase">{post.category}</span></div>
+                </div>
                 <MoreHorizontal size={20} className="text-[#262626]" />
               </div>
               {post.images && post.images.length > 0 ? (
@@ -741,7 +769,7 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
                 <div className="font-bold text-sm text-[#262626] mb-1">{post.likedBy.length > 0 ? `${post.likedBy.length} likes` : 'Be the first to like'}</div>
                 {post.images && post.images.length > 0 && <div className="text-sm text-[#262626] mb-1"><span className="font-bold mr-2">{post.author}</span>{post.content}</div>}
                 <button onClick={() => onOpenComments(post)} className="text-[#0095f6] text-sm mb-1 block">{post.comments.length > 0 ? `View all ${post.comments.length} comments` : 'Add a comment...'}</button>
-                {post.comments.slice(0, 2).map((c) => (<div key={c.id} className="flex justify-between items-start mb-0.5"><div className="text-sm text-[#262626]"><span className="font-bold mr-2">{c.author}</span>{c.text}</div></div>))}
+                {post.comments.slice(0, 2).map((c) => (<div key={c.id} className="flex justify-between items-start mb-0.5"><div className="text-sm text-[#262626]"><span className="font-bold mr-2 cursor-pointer" onClick={() => onUserClick(c.author)}>{c.author}</span>{c.text}</div></div>))}
                 <div className="text-gray-400 text-[10px] uppercase mt-1 mb-3">{post.timestamp}</div>
               </div>
             </div>
@@ -785,7 +813,7 @@ const ReservationSection = ({ openPayment }) => {
   };
 
   const GuideContent = () => (
-    <div className="bg-white p-8 rounded-xl border border-gray-200 text-slate-600 text-sm leading-7 font-light shadow-sm animate-fadeIn">
+    <div className="bg-white p-8 rounded-xl border border-gray-200 text-slate-600 text-sm leading-7 font-light shadow-sm animate-fadeIn w-[85%] mx-auto">
       <h4 className="font-bold text-slate-900 mb-4 text-lg">예약 및 이용 안내</h4>
       <ul className="list-disc list-inside space-y-3 text-sm">
         <li>모든 시설은 30분 단위로 예약 가능합니다.</li>
@@ -801,7 +829,7 @@ const ReservationSection = ({ openPayment }) => {
       {isCalendarOpen && <CalendarModal />}
       
       {/* Top Tabs Fixed Grid */}
-      <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-3 mb-4 px-0">
+      <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-3 mb-4 px-0 w-full">
         {['status', 'reserve', 'guide'].map(tab => (
             <button 
               key={tab}
@@ -814,9 +842,9 @@ const ReservationSection = ({ openPayment }) => {
         ))}
       </div>
 
-      <div className="pt-4 w-[85%] mx-auto">
+      <div className="pt-4 w-[100%]">
         {bookTab === 'status' && (
-            <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-4 animate-fadeIn w-[85%] mx-auto">
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                 <div className="relative z-10">
@@ -874,13 +902,13 @@ const ReservationSection = ({ openPayment }) => {
         )}
 
         {bookTab === 'reserve' && (
-            <div className="animate-fadeIn">
+            <div className="animate-fadeIn w-[85%] mx-auto">
             <div className="bg-white p-6 mb-6 rounded-2xl shadow-sm border border-gray-200">
                 <h2 className="text-slate-900 text-xs font-bold uppercase tracking-widest mb-6 text-center border-b border-gray-100 pb-4">Details</h2>
                 <div className="space-y-6">
                 <div className="flex items-center gap-4">
                     <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Facility</label>
-                    <div className="relative flex-1"><select className="w-full bg-gray-50 border border-gray-200 text-slate-900 py-2 px-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black rounded-lg appearance-none font-bold text-right pr-8" value={selectedFacility.id} onChange={(e) => setSelectedFacility(FACILITIES.find(f => f.id === e.target.value))}><optgroup label="SPORTS">{FACILITIES.filter(f => f.type === 'Sports').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label="LOUNGE">{FACILITIES.filter(f => f.type === 'Lounge').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup></select><ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} /></div>
+                    <div className="relative flex-1"><select className="w-full bg-gray-50 border border-gray-200 text-slate-900 py-2 px-3 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black rounded-lg appearance-none font-bold text-center pr-8" value={selectedFacility.id} onChange={(e) => setSelectedFacility(FACILITIES.find(f => f.id === e.target.value))}><optgroup label="SPORTS">{FACILITIES.filter(f => f.type === 'Sports').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup><optgroup label="LOUNGE">{FACILITIES.filter(f => f.type === 'Lounge').map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</optgroup></select><ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} /></div>
                 </div>
                 <div className="flex items-center gap-4">
                     <label className="block text-slate-500 text-[10px] uppercase tracking-widest font-bold w-16">Date</label>
@@ -911,7 +939,7 @@ const EventSection = ({ events, onSelectEvent, onToggleJoin }) => {
   return (
     <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
        {/* Tabs */}
-       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-2 mb-4 px-0">
+       <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-2 mb-4 px-0 w-full">
          <button onClick={() => setEventTab('upcoming')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative text-center ${eventTab === 'upcoming' ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}>
             Upcoming
             {eventTab === 'upcoming' && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0095f6]"></div>}
@@ -927,39 +955,40 @@ const EventSection = ({ events, onSelectEvent, onToggleJoin }) => {
            <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer group" onClick={() => onSelectEvent(event)}>
               <div className="h-40 relative overflow-hidden">
                 <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                {/* Attendee Thumbnails Overlay - Updated */}
-                <div className="absolute bottom-2 left-2 flex items-center">
-                   <div className="flex -space-x-2">
-                     {event.attendees.slice(0, 4).map((name, i) => {
-                        let userImg = null;
-                        if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
-                        else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
-
-                        return (
-                            <div key={i} className="w-6 h-6 rounded-full border border-white bg-gray-200 overflow-hidden flex items-center justify-center text-[8px] font-bold text-gray-500">
-                                {userImg ? <img src={userImg} className="w-full h-full object-cover" /> : name[0]}
-                            </div>
-                        )
-                     })}
-                     {event.attendees.length > 4 && (
-                         <div className="w-6 h-6 rounded-full border border-white bg-gray-800 flex items-center justify-center text-[8px] font-bold text-white">
-                             +{event.attendees.length - 4}
-                         </div>
-                     )}
-                   </div>
-                </div>
               </div>
               <div className="p-5">
                  <div className="flex justify-between items-start mb-1">
                    <div>
                      <h3 className="font-bold text-slate-900 text-lg mb-1">{event.title}</h3>
                      <p className="text-xs text-slate-500 flex items-center gap-1"><Calendar size={12}/> {event.date} {event.time}</p>
-                     <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/> {event.location}</p>
-                        {/* D-Day Tag */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] bg-slate-900 text-white px-1.5 py-0.5 rounded font-bold">{calculateDDay(event.date)}</span>
-                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{event.attendees.length}/{event.maxAttendees} Joined</span>
+                     <div className="flex items-center justify-between mt-4 w-full">
+                        <div className="flex flex-col gap-1">
+                            <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/> {event.location}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                {/* D-Day Tag */}
+                                <span className="text-[9px] bg-slate-900 text-white px-1.5 py-0.5 rounded font-bold">{calculateDDay(event.date)}</span>
+                                <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{event.attendees.length}/{event.maxAttendees} Joined</span>
+                            </div>
+                        </div>
+                        
+                        {/* Attendee Thumbnails (Non-overlapping) */}
+                        <div className="flex gap-1"> 
+                            {event.attendees.slice(0, 4).map((name, i) => {
+                                let userImg = null;
+                                if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
+                                else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
+
+                                return (
+                                    <div key={i} className="w-6 h-6 rounded-full border border-white bg-gray-200 overflow-hidden flex items-center justify-center text-[8px] font-bold text-gray-500">
+                                        {userImg ? <img src={userImg} className="w-full h-full object-cover" /> : name[0]}
+                                    </div>
+                                )
+                            })}
+                            {event.attendees.length > 4 && (
+                                <div className="w-6 h-6 rounded-full border border-white bg-gray-800 flex items-center justify-center text-[8px] font-bold text-white">
+                                    +{event.attendees.length - 4}
+                                </div>
+                            )}
                         </div>
                      </div>
                    </div>
@@ -1040,107 +1069,9 @@ const PassSection = ({ user }) => {
   );
 };
 
-// Profile Section (Full Page)
+// Profile Section (Full Page - Not Used anymore as Main Tab but kept for reference if needed)
 const ProfileSection = ({ user, onLogout, onUpdateProfile }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ ...user });
-  const fileInputRef = useRef(null);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setEditData({ ...editData, profileImage: imageUrl });
-    }
-  };
-
-  const handleSave = () => {
-    onUpdateProfile(editData);
-    setIsEditing(false);
-  };
-
-  return (
-    <div className="bg-white min-h-full relative h-full overflow-y-auto pb-24 custom-scrollbar">
-      {/* Profile Header & Actions */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 p-4 flex justify-between items-center">
-        <h2 className="text-sm text-gray-400 font-medium">My Profile</h2>
-        {isEditing ? (
-          <div className="flex gap-3">
-            <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button>
-            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
-          </div>
-        ) : (
-          <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1">Edit</button>
-        )}
-      </div>
-
-      <div className="p-6">
-        <div className="text-center mb-8 relative">
-          <div className="w-32 h-32 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden"
-               onClick={() => fileInputRef.current.click()}>
-             {/* Profile Image or Placeholder */}
-             {isEditing || !isEditing ? ( 
-                <div className="cursor-pointer w-full h-full flex items-center justify-center transition-colors relative">
-                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
-                   
-                   {/* Camera Overlay Hint */}
-                   <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Camera className="text-white drop-shadow-md" size={28} />
-                   </div>
-                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-                </div>
-             ) : null}
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
-          {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
-        </div>
-
-        {isEditing ? (
-          <div className="space-y-4 animate-fadeIn">
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            </div>
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
-               <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                 <span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Calendar size={14}/> Joined</span>
-                 <div className="text-right flex items-center gap-2"><span className="text-sm font-bold text-slate-800">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
-               </div>
-               <div className="space-y-2">
-                 <div className="flex justify-between"><span className="text-xs text-slate-500">Email</span><span className="text-xs font-medium text-slate-900">{user.email}</span></div>
-                 <div className="flex justify-between"><span className="text-xs text-slate-500">Phone</span><span className="text-xs font-medium text-slate-900">{user.phone}</span></div>
-               </div>
-             </div>
-
-             {/* Network Section */}
-             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100 space-y-4">
-               <div>
-                 <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Uplines</div>
-                 <div className="flex flex-wrap gap-2">
-                    {user.uplines && user.uplines.length > 0 ? user.uplines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>) : <span className="text-xs text-slate-400 italic">No upline</span>}
-                 </div>
-               </div>
-               <div>
-                 <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
-                 <div className="flex flex-wrap gap-2">
-                   {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
-                 </div>
-               </div>
-             </div>
-             
-             <button onClick={onLogout} className="text-xs text-slate-400 mt-8 underline mx-auto block hover:text-slate-600 transition-colors">Sign Out</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    return null;
 };
 
 // Main App
@@ -1273,7 +1204,7 @@ const App = () => {
 
   const renderContent = () => {
     switch(activeTab) {
-      case 'feed': return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; 
+      case 'feed': return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={scrollPosRef} />; 
       case 'book': return <ReservationSection openPayment={() => setIsPaymentModalOpen(true)} />;
       case 'event': return <EventSection events={events} onSelectEvent={setSelectedEvent} onToggleJoin={toggleJoinEvent} />; 
       case 'chat': return <InquirySection />;
@@ -1290,7 +1221,7 @@ const App = () => {
         <ProfileDrawer isOpen={!!viewingUser || isProfileOpen} onClose={() => { setViewingUser(null); setIsProfileOpen(false); }} user={viewingUser || currentUser} isMe={!viewingUser || viewingUser.name === currentUser.name} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />
         {isCreatingPost && <CreatePostModal user={currentUser} onClose={() => setIsCreatingPost(false)} onCreate={handleCreatePost} />}
         {viewingImage && <ImageViewer images={viewingImage.images} initialIndex={viewingImage.index} onClose={() => setViewingImage(null)} />}
-        <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} />
+        <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} onUserClick={openProfile} />
         <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
         <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} />
         
@@ -1300,7 +1231,7 @@ const App = () => {
         {/* Header (Fixed Top) */}
         <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 h-auto min-h-[50px] flex items-center justify-between px-4 z-30 flex-shrink-0 pt-[env(safe-area-inset-top)] pb-2 box-content w-full">
           <h1 className="text-xl font-bold text-slate-900 cursor-pointer pt-2" style={{ fontFamily: "'Billabong', cursive" }} onClick={() => handleTabChange('feed')}>Playa</h1>
-          <div className="flex items-center gap-3 pt-2 pr-8">
+          <div className="flex items-center gap-3 pt-2 pr-5">
              <button onClick={() => setIsNotificationOpen(true)} className="p-2 hover:bg-gray-50 rounded-full transition-colors relative">
                <Bell size={24} strokeWidth={1.5} className="text-slate-900" />
                <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
@@ -1316,7 +1247,7 @@ const App = () => {
         <main 
           className="flex-1 relative flex flex-col overflow-hidden bg-white w-full"
           // Capture scroll position for Feed
-          onScroll={(e) => { if (activeTab === 'feed') setFeedScrollPos(e.target.scrollTop); }}
+          onScroll={(e) => { if (activeTab === 'feed') scrollPosRef.current = e.target.scrollTop; }}
         >
           {renderContent()}
 

@@ -5,7 +5,7 @@ import {
   Users, Briefcase, MoreHorizontal, ChevronLeft, 
   Edit3, Camera, Check, Send, Shield, Star, CalendarDays, 
   Image as ImageIcon, PlusSquare, Bookmark, Share2, AlignLeft,
-  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, Ticket
+  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, PartyPopper, Ticket
 } from 'lucide-react';
 
 // --- CONFIG ---
@@ -53,9 +53,11 @@ const GlobalStyles = () => {
       
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
       
       .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
       .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-slideInRight { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     `;
     document.head.appendChild(style);
     return () => {
@@ -209,6 +211,8 @@ const INITIAL_CHATS = [
   { id: 1, sender: 'admin', text: '안녕하십니까, 김플라님. Playa 컨시어지입니다.\n무엇을 도와드릴까요?', timestamp: '10:00 AM' },
 ];
 
+const ADMIN_USER = { id: 'admin', name: 'playa_official', role: 'admin', profileImage: null };
+
 // --- HELPERS ---
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -317,14 +321,33 @@ const ImageDots = ({ current, total }) => {
 
 const ImageViewer = ({ images, initialIndex, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  useEffect(() => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      const originalContent = viewport.getAttribute('content');
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+      return () => viewport.setAttribute('content', originalContent);
+    }
+  }, []);
 
   const handleNext = () => { if (currentIndex < images.length - 1) setCurrentIndex(currentIndex + 1); };
   const handlePrev = () => { if (currentIndex > 0) setCurrentIndex(currentIndex - 1); };
+  const onTouchStart = (e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); }
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchEnd = () => { 
+    if (!touchStart || !touchEnd) return; 
+    const distance = touchStart - touchEnd;
+    if (distance > 50) handleNext(); 
+    if (distance < -50) handlePrev(); 
+  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-fadeIn" onClick={onClose}>
       <button className="absolute top-safe right-4 text-white p-2 bg-black/20 rounded-full backdrop-blur-sm z-20 mt-4" onClick={onClose}><X size={24} /></button>
-      <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative w-full h-full flex items-center justify-center" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <img src={images[currentIndex]} className="max-w-full max-h-full object-contain transition-opacity duration-300" onClick={(e) => e.stopPropagation()} alt={`View ${currentIndex + 1}`} />
       </div>
       {images.length > 1 && (
@@ -533,7 +556,7 @@ const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile, isMe 
       <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex justify-between items-center p-4 border-b border-gray-100 pt-[calc(env(safe-area-inset-top)+12px)]">
           {isEditing ? <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button> : <div className="w-8"></div>}
-          <h3 className="font-bold text-slate-900">Profile</h3>
+          <h3 className="font-bold text-sm text-gray-400">Profile</h3>
           {isEditing ? (
             <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
           ) : (
@@ -549,7 +572,7 @@ const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile, isMe 
                    {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
                    {(isEditing || isMe) && (
                       <>
-                        <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute inset-0 bg-black/10 flex items-center justify-center transition-opacity group-hover:opacity-100">
                            <Camera className="text-white drop-shadow-md" size={28} />
                         </div>
                         <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
@@ -602,7 +625,7 @@ const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile, isMe 
                  </div>
                </div>
                
-               {isMe && <button onClick={onLogout} className="text-xs text-slate-400 mt-8 block mx-auto hover:text-slate-600 transition-colors">Sign Out</button>}
+               {isMe && <button onClick={onLogout} className="text-xs text-gray-400 mt-8 block mx-auto hover:text-slate-600 transition-colors">Sign Out</button>}
             </div>
           )}
         </div>
@@ -652,10 +675,7 @@ const LoginSection = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white text-slate-900 p-6 relative overflow-hidden font-sans">
       <div className="w-full max-w-xs z-10">
-        <div className="text-center mb-10">
-           <img src={PLAYA_LOGO_URL} alt="Playa" className="h-12 w-auto mx-auto mb-4" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
-           <h1 className="text-4xl font-bold mb-4 tracking-tighter hidden" style={{ fontFamily: "'Billabong', 'Grand Hotel', cursive" }}>Playa</h1>
-        </div>
+        <div className="text-center mb-10"><h1 className="text-4xl font-bold mb-4 tracking-tighter" style={{ fontFamily: "'Billabong', 'Grand Hotel', cursive" }}>Playa</h1></div>
         <form onSubmit={handleLogin} className="space-y-3">
           <div className="bg-gray-50 border border-gray-300 rounded-lg py-16 px-4 flex flex-col gap-4 shadow-sm">
              <input type="text" placeholder="Phone number, username, or email" className="w-full bg-white border border-gray-300 rounded-sm py-3 px-3 text-base focus:outline-none focus:border-gray-400" value={id} onChange={(e) => setId(e.target.value)} />
@@ -777,7 +797,7 @@ const ReservationSection = ({ openPayment }) => {
   );
 
   return (
-    <div className="pb-24 pt-0 px-0 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto custom-scrollbar">
+    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
       {isCalendarOpen && <CalendarModal />}
       
       {/* Top Tabs Fixed Grid */}
@@ -883,22 +903,13 @@ const ReservationSection = ({ openPayment }) => {
 };
 
 // Event Section
-const EventSection = () => {
+const EventSection = ({ events, onSelectEvent, onToggleJoin }) => {
   const [eventTab, setEventTab] = useState('upcoming');
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [events, setEvents] = useState(INITIAL_EVENTS);
-
-  // Mock toggle join
-  const toggleJoin = (eventId) => {
-     alert("Event joined/left!");
-  };
-
+  
   const filteredEvents = events.filter(e => e.status === eventTab);
 
   return (
-    <div className="pb-24 pt-0 px-0 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto custom-scrollbar">
-       {selectedEvent && <EventDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} toggleJoin={toggleJoin} />}
-
+    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
        {/* Tabs */}
        <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-20 pt-4 pb-0 border-b border-gray-100 grid grid-cols-2 mb-4 px-0">
          <button onClick={() => setEventTab('upcoming')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors relative text-center ${eventTab === 'upcoming' ? 'text-[#0095f6]' : 'text-gray-400 hover:text-gray-600'}`}>
@@ -913,11 +924,29 @@ const EventSection = () => {
 
        <div className="space-y-4 pt-4 w-[85%] mx-auto">
          {filteredEvents.map(event => (
-           <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer group" onClick={() => setSelectedEvent(event)}>
+           <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer group" onClick={() => onSelectEvent(event)}>
               <div className="h-40 relative overflow-hidden">
                 <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
-                  {calculateDDay(event.date)}
+                {/* Attendee Thumbnails Overlay - Updated */}
+                <div className="absolute bottom-2 left-2 flex items-center">
+                   <div className="flex -space-x-2">
+                     {event.attendees.slice(0, 4).map((name, i) => {
+                        let userImg = null;
+                        if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
+                        else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
+
+                        return (
+                            <div key={i} className="w-6 h-6 rounded-full border border-white bg-gray-200 overflow-hidden flex items-center justify-center text-[8px] font-bold text-gray-500">
+                                {userImg ? <img src={userImg} className="w-full h-full object-cover" /> : name[0]}
+                            </div>
+                        )
+                     })}
+                     {event.attendees.length > 4 && (
+                         <div className="w-6 h-6 rounded-full border border-white bg-gray-800 flex items-center justify-center text-[8px] font-bold text-white">
+                             +{event.attendees.length - 4}
+                         </div>
+                     )}
+                   </div>
                 </div>
               </div>
               <div className="p-5">
@@ -927,21 +956,10 @@ const EventSection = () => {
                      <p className="text-xs text-slate-500 flex items-center gap-1"><Calendar size={12}/> {event.date} {event.time}</p>
                      <div className="flex items-center justify-between mt-2">
                         <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/> {event.location}</p>
+                        {/* D-Day Tag */}
                         <div className="flex items-center gap-2">
-                            {/* Attendee Thumbnails */}
-                            <div className="flex -space-x-2">
-                                {event.attendees.slice(0, 3).map((name, i) => {
-                                    let userImg = null;
-                                    if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
-                                    else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
-                                    return (
-                                        <div key={i} className="w-5 h-5 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[8px] text-gray-500 font-bold overflow-hidden">
-                                            {userImg ? <img src={userImg} className="w-full h-full object-cover"/> : name[0]}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{event.attendees.length}/{event.maxAttendees}</span>
+                            <span className="text-[10px] bg-slate-900 text-white px-1.5 py-0.5 rounded font-bold">{calculateDDay(event.date)}</span>
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{event.attendees.length}/{event.maxAttendees} Joined</span>
                         </div>
                      </div>
                    </div>
@@ -1127,9 +1145,13 @@ const ProfileSection = ({ user, onLogout, onUpdateProfile }) => {
 
 // Main App
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [currentUser, setCurrentUser] = useState(INITIAL_USER);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('playa_isLoggedIn') === 'true');
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('playa_isAdmin') === 'true');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUser = localStorage.getItem('playa_currentUser');
+    return savedUser ? JSON.parse(savedUser) : INITIAL_USER;
+  });
+
   const [activeTab, setActiveTab] = useState('feed');
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [posts, setPosts] = useState(INITIAL_POSTS);
@@ -1141,6 +1163,8 @@ const App = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [events, setEvents] = useState(INITIAL_EVENTS);
   const scrollPosRef = useRef(0);
 
   // Reorganized Bottom Menu
@@ -1152,9 +1176,30 @@ const App = () => {
     { id: 'pass', icon: QrCode, label: 'Pass' },
   ];
 
-  const handleLogin = (admin) => { setIsLoggedIn(true); setIsAdmin(admin); setCurrentUser(admin ? ADMIN_USER : INITIAL_USER); };
-  const handleLogout = () => { setIsLoggedIn(false); setIsAdmin(false); setActiveTab('feed'); setIsProfileOpen(false); };
-  const handleUpdateProfile = (updatedUser) => { setCurrentUser(updatedUser); };
+  const handleLogin = (admin) => { 
+    const user = admin ? ADMIN_USER : INITIAL_USER;
+    setIsLoggedIn(true); 
+    setIsAdmin(admin); 
+    setCurrentUser(user);
+    localStorage.setItem('playa_isLoggedIn', 'true');
+    localStorage.setItem('playa_isAdmin', admin ? 'true' : 'false');
+    localStorage.setItem('playa_currentUser', JSON.stringify(user));
+  };
+
+  const handleLogout = () => { 
+    setIsLoggedIn(false); 
+    setIsAdmin(false); 
+    setActiveTab('feed'); 
+    setIsProfileOpen(false); 
+    localStorage.removeItem('playa_isLoggedIn');
+    localStorage.removeItem('playa_isAdmin');
+    localStorage.removeItem('playa_currentUser');
+  };
+
+  const handleUpdateProfile = (updatedUser) => { 
+    setCurrentUser(updatedUser);
+    localStorage.setItem('playa_currentUser', JSON.stringify(updatedUser));
+  };
 
   // Helper to open profile drawer
   const openProfile = (userName) => {
@@ -1162,6 +1207,32 @@ const App = () => {
       if (!user) user = { name: userName, company: 'Member', title: '-', id: 'unknown', joinDate: '2023.01.01', bio: 'Playa Member', email: '-', phone: '-', upline: null, downlines: [], uplines: [] };
       setViewingUser(user);
   }
+
+  // Event Toggle Join Logic
+  const toggleJoinEvent = (eventId) => {
+    const targetEvent = events.find(e => e.id === eventId);
+    if (!targetEvent) return;
+    
+    const isJoined = targetEvent.attendees.includes(INITIAL_USER.name);
+    const updatedEvents = events.map(e => {
+      if (e.id === eventId) {
+        return {
+          ...e,
+          attendees: isJoined 
+            ? e.attendees.filter(name => name !== INITIAL_USER.name)
+            : [...e.attendees, INITIAL_USER.name]
+        };
+      }
+      return e;
+    });
+    setEvents(updatedEvents);
+    
+    // Update selected event if open
+    if (selectedEvent && selectedEvent.id === eventId) {
+        const updatedSelected = updatedEvents.find(e => e.id === eventId);
+        setSelectedEvent(updatedSelected);
+    }
+  };
 
   useLayoutEffect(() => {
     if (activeTab === 'feed') {
@@ -1204,7 +1275,7 @@ const App = () => {
     switch(activeTab) {
       case 'feed': return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; 
       case 'book': return <ReservationSection openPayment={() => setIsPaymentModalOpen(true)} />;
-      case 'event': return <EventSection />; 
+      case 'event': return <EventSection events={events} onSelectEvent={setSelectedEvent} onToggleJoin={toggleJoinEvent} />; 
       case 'chat': return <InquirySection />;
       case 'pass': return <PassSection user={currentUser} />;
       default: return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} />;
@@ -1222,6 +1293,9 @@ const App = () => {
         <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} />
         <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
         <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} />
+        
+        {/* Event Detail Drawer */}
+        <EventDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} toggleJoin={toggleJoinEvent} />
 
         {/* Header (Fixed Top) */}
         <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 h-auto min-h-[50px] flex items-center justify-between px-4 z-30 flex-shrink-0 pt-[env(safe-area-inset-top)] pb-2 box-content w-full">
@@ -1246,7 +1320,7 @@ const App = () => {
         >
           {renderContent()}
 
-          {/* Fixed FAB for Feed - Absolute to Main Container */}
+          {/* Fixed FAB for Feed */}
           {activeTab === 'feed' && (
             <button 
               onClick={() => setIsCreatingPost(true)}
@@ -1257,7 +1331,7 @@ const App = () => {
           )}
         </main>
 
-        {/* Bottom Navigation (Fixed Bottom) - Always Visible */}
+        {/* Bottom Navigation */}
         <nav className="bg-white border-t border-gray-100 w-full z-40 pb-[env(safe-area-inset-bottom)] flex-shrink-0 h-auto block">
           <div className="h-14 flex justify-between items-center px-6">
             {menuItems.map((item) => (

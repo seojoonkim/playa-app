@@ -5,7 +5,7 @@ import {
   Users, Briefcase, MoreHorizontal, ChevronLeft, 
   Edit3, Camera, Check, Send, Shield, Star, CalendarDays, 
   Image as ImageIcon, PlusSquare, Bookmark, Share2, AlignLeft,
-  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, PartyPopper, Ticket
+  Phone, Mail, Edit2, CreditCard, History, Wallet, Bell, Info, Ticket
 } from 'lucide-react';
 
 // --- CONFIG ---
@@ -26,7 +26,7 @@ const GlobalStyles = () => {
 
       /* Custom Overlay Scrollbar */
       .custom-scrollbar {
-        overflow-y: auto;
+        overflow-y: overlay; 
       }
       
       .custom-scrollbar::-webkit-scrollbar {
@@ -52,10 +52,10 @@ const GlobalStyles = () => {
       .pt-safe { padding-top: env(safe-area-inset-top); }
       
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       
       .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
-      .animate-slideInRight { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     `;
     document.head.appendChild(style);
     return () => {
@@ -227,6 +227,19 @@ const calculateDaysSince = (dateString) => {
   return `D+${diffDays}`;
 };
 
+const calculateDDay = (dateString) => {
+  const eventDate = new Date(dateString);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  eventDate.setHours(0,0,0,0);
+  const diffTime = eventDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'D-Day';
+  if (diffDays < 0) return 'Ended';
+  return `D-${diffDays}`;
+};
+
 const generateTimeSlots = () => {
   const slots = [];
   for (let hour = 0; hour < 24; hour++) {
@@ -241,6 +254,30 @@ const formatCurrency = (amount) => {
 };
 
 // --- COMPONENTS ---
+
+const PaymentModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6 animate-fadeIn" onClick={onClose}>
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden animate-scaleIn p-6 text-center" onClick={e => e.stopPropagation()}>
+        <h3 className="text-xl font-bold text-slate-900 mb-4">Top Up Balance</h3>
+        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+           <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Current Balance</p>
+           <p className="text-2xl font-bold text-slate-900">{formatCurrency(INITIAL_USER.credits)}</p>
+        </div>
+        <div className="space-y-3 mb-6">
+           <button className="w-full py-3 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center justify-center gap-2">
+              <CreditCard size={16} /> Credit Card
+           </button>
+           <button className="w-full py-3 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center justify-center gap-2">
+              <Wallet size={16} /> Bank Transfer
+           </button>
+        </div>
+        <button onClick={onClose} className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold">Cancel</button>
+      </div>
+    </div>
+  );
+};
 
 const NotificationDrawer = ({ isOpen, onClose }) => {
   return (
@@ -280,33 +317,14 @@ const ImageDots = ({ current, total }) => {
 
 const ImageViewer = ({ images, initialIndex, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-
-  useEffect(() => {
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      const originalContent = viewport.getAttribute('content');
-      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
-      return () => viewport.setAttribute('content', originalContent);
-    }
-  }, []);
 
   const handleNext = () => { if (currentIndex < images.length - 1) setCurrentIndex(currentIndex + 1); };
   const handlePrev = () => { if (currentIndex > 0) setCurrentIndex(currentIndex - 1); };
-  const onTouchStart = (e) => { setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); }
-  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-  const onTouchEnd = () => { 
-    if (!touchStart || !touchEnd) return; 
-    const distance = touchStart - touchEnd;
-    if (distance > 50) handleNext(); 
-    if (distance < -50) handlePrev(); 
-  }
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-fadeIn" onClick={onClose}>
       <button className="absolute top-safe right-4 text-white p-2 bg-black/20 rounded-full backdrop-blur-sm z-20 mt-4" onClick={onClose}><X size={24} /></button>
-      <div className="relative w-full h-full flex items-center justify-center" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className="relative w-full h-full flex items-center justify-center">
         <img src={images[currentIndex]} className="max-w-full max-h-full object-contain transition-opacity duration-300" onClick={(e) => e.stopPropagation()} alt={`View ${currentIndex + 1}`} />
       </div>
       {images.length > 1 && (
@@ -381,116 +399,6 @@ const CommentDrawer = ({ isOpen, onClose, post, currentUser, onAddComment }) => 
         </div>
         <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-3 pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-center gap-3 px-2 mb-2"><div className="w-8 h-8 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-600">{currentUser.name[0]}</div><div className="flex-1 relative"><input type="text" placeholder={`Add a comment as ${currentUser.name}...`} className="w-full bg-gray-50 border-none rounded-full py-3 px-4 text-base focus:outline-none focus:ring-1 focus:ring-gray-200 transition-all" value={text} onChange={(e) => setText(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSubmit()} /><button onClick={handleSubmit} disabled={!text.trim()} className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold transition-colors ${text.trim() ? 'text-[#0095f6] cursor-pointer' : 'text-gray-300 cursor-default'}`}>Post</button></div></div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-// Profile Drawer (Right Side Slide-in)
-const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ ...user });
-  const [isVisible, setIsVisible] = useState(false);
-  const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      requestAnimationFrame(() => setIsVisible(true));
-    } else {
-      setIsVisible(false);
-    }
-  }, [isOpen]);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setEditData({ ...editData, profileImage: imageUrl });
-    }
-  };
-
-  const handleSave = () => {
-    onUpdateProfile(editData);
-    setIsEditing(false);
-  };
-
-  if (!isOpen && !isVisible) return null;
-
-  return (
-    <>
-      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex justify-between items-center p-4 border-b border-gray-100 pt-[calc(env(safe-area-inset-top)+12px)]">
-          {isEditing ? <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button> : <div className="w-8"></div>}
-          <h3 className="font-bold text-slate-900">Profile</h3>
-          {isEditing ? (
-            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
-          ) : (
-            <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1">Edit</button>
-          )}
-        </div>
-        
-        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
-          <div className="text-center mb-8 relative">
-             <div className="w-32 h-32 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden"
-                 onClick={() => fileInputRef.current.click()}>
-               <div className="cursor-pointer w-full h-full flex items-center justify-center transition-colors relative">
-                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
-                   <div className="absolute inset-0 bg-black/10 flex items-center justify-center transition-opacity group-hover:opacity-100">
-                      <Camera className="text-white drop-shadow-md" size={28} />
-                   </div>
-                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
-               </div>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
-            {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
-          </div>
-
-          {isEditing ? (
-            <div className="space-y-4 animate-fadeIn">
-              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
-                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
-              </div>
-              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
-              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
-                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                   <span className="text-sm text-slate-700 font-bold">Joined</span>
-                   <div className="text-right flex items-center gap-2"><span className="text-sm text-slate-700">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
-                 </div>
-                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
-                   <span className="text-sm text-slate-700 font-bold">Email</span><span className="text-sm text-slate-700">{user.email}</span>
-                 </div>
-                 <div className="flex justify-between items-center">
-                   <span className="text-sm text-slate-700 font-bold">Phone</span><span className="text-sm text-slate-700">{user.phone}</span>
-                 </div>
-               </div>
-
-               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100 space-y-4">
-                 <div>
-                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Uplines</div>
-                   <div className="flex flex-wrap gap-2">
-                      {user.uplines && user.uplines.length > 0 ? user.uplines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>) : <span className="text-xs text-slate-400 italic">No upline</span>}
-                   </div>
-                 </div>
-                 <div>
-                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
-                   <div className="flex flex-wrap gap-2">
-                     {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
-                   </div>
-                 </div>
-               </div>
-               
-               <button onClick={onLogout} className="text-xs text-slate-400 mt-8 block mx-auto hover:text-slate-600 transition-colors">Sign Out</button>
-            </div>
-          )}
         </div>
       </div>
     </>
@@ -587,6 +495,155 @@ const EventDrawer = ({ event, onClose, toggleJoin }) => {
   );
 };
 
+// Profile Drawer (Right Side Slide-in)
+const ProfileDrawer = ({ isOpen, onClose, user, onLogout, onUpdateProfile, isMe }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ ...user });
+  const [isVisible, setIsVisible] = useState(false);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => setIsVisible(true));
+      setEditData({ ...user });
+    } else {
+      setIsVisible(false);
+      setIsEditing(false);
+    }
+  }, [isOpen, user]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setEditData({ ...editData, profileImage: imageUrl });
+    }
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(editData);
+    setIsEditing(false);
+  };
+
+  if (!isOpen && !isVisible) return null;
+
+  return (
+    <>
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-[70] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex justify-between items-center p-4 border-b border-gray-100 pt-[calc(env(safe-area-inset-top)+12px)]">
+          {isEditing ? <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button> : <div className="w-8"></div>}
+          <h3 className="font-bold text-slate-900">Profile</h3>
+          {isEditing ? (
+            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
+          ) : (
+            isMe ? <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1">Edit</button> : <button onClick={onClose} className="text-slate-900 p-2"><X size={24} /></button>
+          )}
+        </div>
+        
+        <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="text-center mb-8 relative">
+             <div className="w-32 h-32 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden"
+                 onClick={() => (isEditing || isMe) && fileInputRef.current.click()}>
+               <div className={`cursor-pointer w-full h-full flex items-center justify-center transition-colors relative`}>
+                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
+                   {(isEditing || isMe) && (
+                      <>
+                        <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                           <Camera className="text-white drop-shadow-md" size={28} />
+                        </div>
+                        <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                      </>
+                   )}
+               </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
+            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
+            {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
+          </div>
+
+          {isEditing ? (
+            <div className="space-y-4 animate-fadeIn">
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+                <div><label className="text-sm text-slate-700 font-bold mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+              </div>
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+              <div><label className="text-sm text-slate-700 font-bold mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm text-slate-700 focus:outline-none focus:border-[#0095f6]" /></div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
+                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                   <span className="text-sm text-slate-700 font-bold">Joined</span>
+                   <div className="text-right flex items-center gap-2"><span className="text-sm text-slate-700 font-medium">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
+                 </div>
+                 <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                   <span className="text-sm text-slate-700 font-bold">Email</span><span className="text-sm text-slate-700 font-medium">{user.email}</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                   <span className="text-sm text-slate-700 font-bold">Phone</span><span className="text-sm text-slate-700 font-medium">{user.phone}</span>
+                 </div>
+               </div>
+
+               <div className="bg-slate-50 rounded-xl p-4 border border-gray-100 space-y-4">
+                 <div>
+                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Uplines</div>
+                   <div className="flex flex-wrap gap-2">
+                      {user.uplines && user.uplines.length > 0 ? user.uplines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>) : <span className="text-xs text-slate-400 italic">No upline</span>}
+                   </div>
+                 </div>
+                 <div>
+                   <div className="text-sm text-slate-700 font-bold mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
+                   <div className="flex flex-wrap gap-2">
+                     {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
+                   </div>
+                 </div>
+               </div>
+               
+               {isMe && <button onClick={onLogout} className="text-xs text-slate-400 mt-8 block mx-auto hover:text-slate-600 transition-colors">Sign Out</button>}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Create Post Modal
+const CreatePostModal = ({ user, onClose, onCreate }) => {
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('free');
+  const [images, setImages] = useState([]);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const handleImageUpload = () => { if (images.length >= 4) return alert('Max 4 images'); setImages([...images, 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?auto=format&fit=crop&q=80&w=800']); };
+  const handleSubmit = () => { if (!content && images.length === 0) return; onCreate({ content, category, images }); onClose(); };
+  const handleBackdropClick = () => { if (content || images.length > 0) { setShowExitConfirm(true); } else { onClose(); } };
+  const availableCategories = FEED_CATEGORIES.filter(c => c.id !== 'all').filter(c => { if (user.role === 'admin') return true; return !c.adminOnly; });
+
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4 animate-fadeIn" onClick={handleBackdropClick}>
+      <div className="bg-white w-full max-w-lg rounded-xl overflow-hidden flex flex-col max-h-[90vh] relative" onClick={e => e.stopPropagation()}>
+        {showExitConfirm && (
+          <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center animate-fadeIn" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Discard Post?</h3>
+            <div className="flex flex-col w-full gap-3 mt-4"><button onClick={onClose} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm">Discard</button><button onClick={() => setShowExitConfirm(false)} className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm">Keep Editing</button></div>
+          </div>
+        )}
+        <div className="h-12 border-b border-gray-200 flex items-center justify-center relative px-4 font-bold text-slate-900">
+          <button onClick={handleBackdropClick} className="text-slate-900 absolute left-4 text-sm font-normal p-2">Cancel</button><span className="text-sm">New Post</span><button onClick={handleSubmit} className="text-[#0095f6] absolute right-4 text-sm font-medium p-2">Post</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex gap-4 mb-6"><div className="w-10 h-10 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold">{user.name[0]}</div><textarea className="flex-1 resize-none outline-none text-base placeholder-gray-400 h-32" placeholder="Write a caption..." value={content} onChange={e => setContent(e.target.value)} /></div>
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">{images.map((img, i) => (<div key={i} className="relative w-32 h-32 flex-shrink-0"><img src={img} className="w-full h-full object-cover rounded-md" /><button onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><X size={12} /></button></div>))}{images.length < 4 && <button onClick={handleImageUpload} className="w-32 h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-md flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 flex-shrink-0"><ImageIcon size={24} /><span className="text-xs mt-1">Add Photo</span></button>}</div>
+          <div className="border-t border-gray-100 pt-4"><label className="block text-xs font-bold text-gray-500 mb-3 uppercase">Category</label><div className="flex flex-wrap gap-2">{availableCategories.map(cat => (<button key={cat.id} onClick={() => setCategory(cat.id)} className={`px-4 py-2 rounded-full text-xs font-medium border transition-all ${category === cat.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-gray-200 hover:border-gray-400'}`}>{cat.label}</button>))}</div></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Login Section
 const LoginSection = ({ onLogin }) => {
   const [id, setId] = useState('');
@@ -595,7 +652,10 @@ const LoginSection = ({ onLogin }) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white text-slate-900 p-6 relative overflow-hidden font-sans">
       <div className="w-full max-w-xs z-10">
-        <div className="text-center mb-10"><h1 className="text-4xl font-bold mb-4 tracking-tighter" style={{ fontFamily: "'Billabong', 'Grand Hotel', cursive" }}>Playa</h1></div>
+        <div className="text-center mb-10">
+           <img src={PLAYA_LOGO_URL} alt="Playa" className="h-12 w-auto mx-auto mb-4" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+           <h1 className="text-4xl font-bold mb-4 tracking-tighter hidden" style={{ fontFamily: "'Billabong', 'Grand Hotel', cursive" }}>Playa</h1>
+        </div>
         <form onSubmit={handleLogin} className="space-y-3">
           <div className="bg-gray-50 border border-gray-300 rounded-lg py-16 px-4 flex flex-col gap-4 shadow-sm">
              <input type="text" placeholder="Phone number, username, or email" className="w-full bg-white border border-gray-300 rounded-sm py-3 px-3 text-base focus:outline-none focus:border-gray-400" value={id} onChange={(e) => setId(e.target.value)} />
@@ -673,7 +733,7 @@ const FeedSection = ({ user, onUserClick, onCreatePost, onOpenComments, onImageC
 };
 
 // Reservation Section
-const ReservationSection = () => {
+const ReservationSection = ({ openPayment }) => {
   const [bookTab, setBookTab] = useState('status');
   const [selectedFacility, setSelectedFacility] = useState(FACILITIES[0]);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -717,7 +777,7 @@ const ReservationSection = () => {
   );
 
   return (
-    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
+    <div className="pb-24 pt-0 px-0 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto custom-scrollbar">
       {isCalendarOpen && <CalendarModal />}
       
       {/* Top Tabs Fixed Grid */}
@@ -740,7 +800,10 @@ const ReservationSection = () => {
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                 <div className="relative z-10">
-                    <h3 className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><Wallet size={14}/> Balance</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2"><Wallet size={14}/> Balance</h3>
+                      <button onClick={openPayment} className="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors">+ Charge</button>
+                    </div>
                     <div className="space-y-3">
                     <div className="flex justify-between items-end border-b border-white/10 pb-3">
                         <span className="text-sm text-slate-300">Prepaid Card</span>
@@ -758,15 +821,16 @@ const ReservationSection = () => {
                 <h3 className="text-xs text-slate-900 font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><History size={14}/> Upcoming</h3>
                 <div className="space-y-3">
                 {MY_RESERVATIONS.filter(r => r.status === 'upcoming').map(r => (
-                    <div key={r.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm text-center w-14">
-                        <div className="text-[9px] text-gray-400 uppercase font-bold">{new Date(r.date).toLocaleString('en-US', {month:'short'})}</div>
-                        <div className="text-lg font-bold text-slate-900">{new Date(r.date).getDate()}</div>
+                    <div key={r.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 relative group">
+                        <div className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm text-center w-14 flex-shrink-0">
+                          <div className="text-[9px] text-gray-400 uppercase font-bold">{new Date(r.date).toLocaleString('en-US', {month:'short'})}</div>
+                          <div className="text-lg font-bold text-slate-900">{new Date(r.date).getDate()}</div>
                         </div>
-                        <div>
-                        <div className="text-sm font-bold text-slate-900">{r.facility}</div>
-                        <div className="text-xs text-emerald-600 font-medium mt-0.5">{r.time} • Confirmed</div>
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-slate-900">{r.facility}</div>
+                          <div className="text-xs text-emerald-600 font-medium mt-0.5">{r.time} • Confirmed</div>
                         </div>
+                        <button className="text-[10px] text-gray-400 hover:text-red-500 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors absolute right-2 top-1/2 -translate-y-1/2">Cancel</button>
                     </div>
                 ))}
                 </div>
@@ -824,33 +888,15 @@ const EventSection = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [events, setEvents] = useState(INITIAL_EVENTS);
 
+  // Mock toggle join
   const toggleJoin = (eventId) => {
-    const targetEvent = events.find(e => e.id === eventId);
-    if (!targetEvent) return;
-    
-    const isJoined = targetEvent.attendees.includes(INITIAL_USER.name);
-    const updatedEvents = events.map(e => {
-      if (e.id === eventId) {
-        return {
-          ...e,
-          attendees: isJoined 
-            ? e.attendees.filter(name => name !== INITIAL_USER.name)
-            : [...e.attendees, INITIAL_USER.name]
-        };
-      }
-      return e;
-    });
-    setEvents(updatedEvents);
-    if (selectedEvent && selectedEvent.id === eventId) {
-        const updatedSelected = updatedEvents.find(e => e.id === eventId);
-        setSelectedEvent(updatedSelected);
-    }
+     alert("Event joined/left!");
   };
 
   const filteredEvents = events.filter(e => e.status === eventTab);
 
   return (
-    <div className="pb-24 pt-0 w-full h-full overflow-y-auto custom-scrollbar relative">
+    <div className="pb-24 pt-0 px-0 max-w-2xl mx-auto animate-fadeIn font-sans relative h-full overflow-y-auto custom-scrollbar">
        {selectedEvent && <EventDrawer event={selectedEvent} onClose={() => setSelectedEvent(null)} toggleJoin={toggleJoin} />}
 
        {/* Tabs */}
@@ -870,26 +916,8 @@ const EventSection = () => {
            <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm cursor-pointer group" onClick={() => setSelectedEvent(event)}>
               <div className="h-40 relative overflow-hidden">
                 <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                {/* Attendee Thumbnails Overlay */}
-                <div className="absolute bottom-2 left-2 flex items-center">
-                   <div className="flex -space-x-2">
-                     {event.attendees.slice(0, 4).map((name, i) => {
-                        let userImg = null;
-                        if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
-                        else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
-
-                        return (
-                            <div key={i} className="w-6 h-6 rounded-full border border-white bg-gray-200 overflow-hidden flex items-center justify-center text-[8px] font-bold text-gray-500">
-                                {userImg ? <img src={userImg} className="w-full h-full object-cover" /> : name[0]}
-                            </div>
-                        )
-                     })}
-                     {event.attendees.length > 4 && (
-                         <div className="w-6 h-6 rounded-full border border-white bg-gray-800 flex items-center justify-center text-[8px] font-bold text-white">
-                             +{event.attendees.length - 4}
-                         </div>
-                     )}
-                   </div>
+                <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
+                  {calculateDDay(event.date)}
                 </div>
               </div>
               <div className="p-5">
@@ -897,12 +925,26 @@ const EventSection = () => {
                    <div>
                      <h3 className="font-bold text-slate-900 text-lg mb-1">{event.title}</h3>
                      <p className="text-xs text-slate-500 flex items-center gap-1"><Calendar size={12}/> {event.date} {event.time}</p>
-                     <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={12}/> {event.location}</p>
+                     <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={12}/> {event.location}</p>
+                        <div className="flex items-center gap-2">
+                            {/* Attendee Thumbnails */}
+                            <div className="flex -space-x-2">
+                                {event.attendees.slice(0, 3).map((name, i) => {
+                                    let userImg = null;
+                                    if (name === INITIAL_USER.name) userImg = INITIAL_USER.profileImage;
+                                    else if (OTHER_USERS[name]) userImg = OTHER_USERS[name].profileImage;
+                                    return (
+                                        <div key={i} className="w-5 h-5 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[8px] text-gray-500 font-bold overflow-hidden">
+                                            {userImg ? <img src={userImg} className="w-full h-full object-cover"/> : name[0]}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">{event.attendees.length}/{event.maxAttendees}</span>
+                        </div>
+                     </div>
                    </div>
-                 </div>
-                 {/* Joined Count Tag below location */}
-                 <div className="mt-2 inline-block bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-1 rounded">
-                    {event.attendees.length}/{event.maxAttendees} Joined
                  </div>
               </div>
            </div>
@@ -980,6 +1022,109 @@ const PassSection = ({ user }) => {
   );
 };
 
+// Profile Section (Full Page)
+const ProfileSection = ({ user, onLogout, onUpdateProfile }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ ...user });
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setEditData({ ...editData, profileImage: imageUrl });
+    }
+  };
+
+  const handleSave = () => {
+    onUpdateProfile(editData);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="bg-white min-h-full relative h-full overflow-y-auto pb-24 custom-scrollbar">
+      {/* Profile Header & Actions */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-100 p-4 flex justify-between items-center">
+        <h2 className="text-sm text-gray-400 font-medium">My Profile</h2>
+        {isEditing ? (
+          <div className="flex gap-3">
+            <button onClick={() => setIsEditing(false)} className="text-slate-400 font-bold text-xs uppercase hover:text-slate-600">Cancel</button>
+            <button onClick={handleSave} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc]">Save</button>
+          </div>
+        ) : (
+          <button onClick={() => setIsEditing(true)} className="text-[#0095f6] font-bold text-xs uppercase hover:text-[#007acc] flex items-center gap-1">Edit</button>
+        )}
+      </div>
+
+      <div className="p-6">
+        <div className="text-center mb-8 relative">
+          <div className="w-32 h-32 bg-slate-50 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-serif font-bold text-slate-400 border-4 border-slate-100 shadow-sm relative group overflow-hidden"
+               onClick={() => fileInputRef.current.click()}>
+             {/* Profile Image or Placeholder */}
+             {isEditing || !isEditing ? ( 
+                <div className="cursor-pointer w-full h-full flex items-center justify-center transition-colors relative">
+                   {editData.profileImage ? <img src={editData.profileImage} className="w-full h-full object-cover" /> : <span className="text-slate-300">{editData.name[0]}</span>}
+                   
+                   {/* Camera Overlay Hint */}
+                   <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="text-white drop-shadow-md" size={28} />
+                   </div>
+                   <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                </div>
+             ) : null}
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">{user.name}</h2>
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">{user.company} • {user.title}</p>
+          {!isEditing && <p className="text-sm text-slate-600 mt-4 font-serif italic">"{user.bio}"</p>}
+        </div>
+
+        {isEditing ? (
+          <div className="space-y-4 animate-fadeIn">
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Bio</label><input type="text" value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Company</label><input type="text" value={editData.company} onChange={e => setEditData({...editData, company: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+              <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Title</label><input type="text" value={editData.title} onChange={e => setEditData({...editData, title: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            </div>
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Email</label><input type="text" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+            <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Phone</label><input type="text" value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full border-b border-slate-200 py-2 text-sm focus:outline-none focus:border-[#0095f6]" /></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100">
+               <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                 <span className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2"><Calendar size={14}/> Joined</span>
+                 <div className="text-right flex items-center gap-2"><span className="text-sm font-bold text-slate-800">{user.joinDate}</span><span className="text-[10px] font-bold text-white bg-[#0095f6] px-2 py-0.5 rounded-full">{calculateDaysSince(user.joinDate)}</span></div>
+               </div>
+               <div className="space-y-2">
+                 <div className="flex justify-between"><span className="text-xs text-slate-500">Email</span><span className="text-xs font-medium text-slate-900">{user.email}</span></div>
+                 <div className="flex justify-between"><span className="text-xs text-slate-500">Phone</span><span className="text-xs font-medium text-slate-900">{user.phone}</span></div>
+               </div>
+             </div>
+
+             {/* Network Section */}
+             <div className="bg-slate-50 rounded-xl p-4 border border-gray-100 space-y-4">
+               <div>
+                 <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Uplines</div>
+                 <div className="flex flex-wrap gap-2">
+                    {user.uplines && user.uplines.length > 0 ? user.uplines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>) : <span className="text-xs text-slate-400 italic">No upline</span>}
+                 </div>
+               </div>
+               <div>
+                 <div className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Downlines ({user.downlines.length})</div>
+                 <div className="flex flex-wrap gap-2">
+                   {user.downlines.map((u, i) => <span key={i} className="bg-white border border-gray-200 px-2 py-1 rounded text-[10px] font-medium text-slate-600">{u}</span>)}
+                 </div>
+               </div>
+             </div>
+             
+             <button onClick={onLogout} className="text-xs text-slate-400 mt-8 underline mx-auto block hover:text-slate-600 transition-colors">Sign Out</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Main App
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -994,6 +1139,7 @@ const App = () => {
   const [viewingImage, setViewingImage] = useState(null);
   const [feedScrollPos, setFeedScrollPos] = useState(0); 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const scrollPosRef = useRef(0);
 
@@ -1009,6 +1155,13 @@ const App = () => {
   const handleLogin = (admin) => { setIsLoggedIn(true); setIsAdmin(admin); setCurrentUser(admin ? ADMIN_USER : INITIAL_USER); };
   const handleLogout = () => { setIsLoggedIn(false); setIsAdmin(false); setActiveTab('feed'); setIsProfileOpen(false); };
   const handleUpdateProfile = (updatedUser) => { setCurrentUser(updatedUser); };
+
+  // Helper to open profile drawer
+  const openProfile = (userName) => {
+      let user = userName === currentUser.name ? currentUser : OTHER_USERS[userName];
+      if (!user) user = { name: userName, company: 'Member', title: '-', id: 'unknown', joinDate: '2023.01.01', bio: 'Playa Member', email: '-', phone: '-', upline: null, downlines: [], uplines: [] };
+      setViewingUser(user);
+  }
 
   useLayoutEffect(() => {
     if (activeTab === 'feed') {
@@ -1049,12 +1202,12 @@ const App = () => {
 
   const renderContent = () => {
     switch(activeTab) {
-      case 'feed': return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; 
-      case 'book': return <ReservationSection />;
-      case 'event': return <EventSection />; // New Event Section
+      case 'feed': return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} scrollPosRef={{ current: feedScrollPos }} />; 
+      case 'book': return <ReservationSection openPayment={() => setIsPaymentModalOpen(true)} />;
+      case 'event': return <EventSection />; 
       case 'chat': return <InquirySection />;
       case 'pass': return <PassSection user={currentUser} />;
-      default: return <FeedSection user={currentUser} onUserClick={(name) => setViewingUser(name)} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} />;
+      default: return <FeedSection user={currentUser} onUserClick={openProfile} onCreatePost={() => setIsCreatingPost(true)} onOpenComments={handleOpenComments} onImageClick={(data) => setViewingImage(data)} />;
     }
   };
 
@@ -1063,14 +1216,12 @@ const App = () => {
       <div className="w-full max-w-md bg-white fixed inset-0 mx-auto shadow-2xl border-x border-gray-200 flex flex-col overflow-hidden">
         <GlobalStyles />
         {/* Overlays */}
-        {viewingUser && <UserProfilePopup userName={viewingUser} currentUser={currentUser} onClose={() => setViewingUser(null)} />}
+        <ProfileDrawer isOpen={!!viewingUser || isProfileOpen} onClose={() => { setViewingUser(null); setIsProfileOpen(false); }} user={viewingUser || currentUser} isMe={!viewingUser || viewingUser.name === currentUser.name} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />
         {isCreatingPost && <CreatePostModal user={currentUser} onClose={() => setIsCreatingPost(false)} onCreate={handleCreatePost} />}
         {viewingImage && <ImageViewer images={viewingImage.images} initialIndex={viewingImage.index} onClose={() => setViewingImage(null)} />}
         <CommentDrawer isOpen={isCommentDrawerOpen} onClose={() => setIsCommentDrawerOpen(false)} post={activePostForComments} currentUser={currentUser} onAddComment={handleAddComment} />
         <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
-        
-        {/* Profile Drawer (New UX) */}
-        <ProfileDrawer isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={currentUser} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} />
+        <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} />
 
         {/* Header (Fixed Top) */}
         <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 h-auto min-h-[50px] flex items-center justify-between px-4 z-30 flex-shrink-0 pt-[env(safe-area-inset-top)] pb-2 box-content w-full">
@@ -1095,7 +1246,7 @@ const App = () => {
         >
           {renderContent()}
 
-          {/* Fixed FAB for Feed */}
+          {/* Fixed FAB for Feed - Absolute to Main Container */}
           {activeTab === 'feed' && (
             <button 
               onClick={() => setIsCreatingPost(true)}

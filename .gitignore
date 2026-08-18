@@ -26,3 +26,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local service metadata
+supabase/.temp/

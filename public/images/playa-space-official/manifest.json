@@ -1,0 +1,37 @@
+{
+  "source": "Official PLAYA facility pages",
+  "items": [
+    {
+      "file": "/images/playa-space-official/screen-golf.webp",
+      "source_url": "https://framerusercontent.com/images/Jt78ndzHWGC9xTZ76y6VxyIyWs.jpg",
+      "source_page": "https://playa.club/golf",
+      "source_dimensions": [
+        1920,
+        2880
+      ],
+      "derived_dimensions": [
+        1333,
+        2000
+      ],
+      "source_sha256": "b83a48b33404b27df429a6447eb2ae489a95844797b91e617fe05317ba3b5d4c",
+      "usage": "SPACES / 04 Screen Golf",
+      "verified": "2026-07-31"
+    },
+    {
+      "file": "/images/playa-space-official/concierge.webp",
+      "source_url": "https://framerusercontent.com/images/ytEAcuOCASSnBj7OhaM1r36AY.jpg",
+      "source_page": "https://playa.club/concierge",
+      "source_dimensions": [
+        1875,
+        1832
+      ],
+      "derived_dimensions": [
+        1600,
+        1563
+      ],
+      "source_sha256": "fcb55365e1fc7a8c44b1128ae25fe83265a5558f4b564dd8e73b061a886d4e5f",
+      "usage": "SPACES / 06 Concierge",
+      "verified": "2026-07-31"
+    }
+  ]
+}

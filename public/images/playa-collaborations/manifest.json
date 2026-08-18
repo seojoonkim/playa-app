@@ -1,0 +1,20 @@
+{
+  "aman": {
+    "post": "https://www.instagram.com/playaseoul/p/DbVTQjcvq7I/",
+    "file": "aman.jpg",
+    "bytes": 792694,
+    "sha256": "8e159be6ff4ee11ac0a957cbc27d41cab01dffc417209a162e5550e0372d81a3"
+  },
+  "graff": {
+    "post": "https://www.instagram.com/p/DYWKdL3Egz7/",
+    "file": "graff.jpg",
+    "bytes": 470713,
+    "sha256": "d2c280f417f487a8d1acaa4c1f140eb983ba8ff29975a2f953bd5bf3068000f6"
+  },
+  "aesop": {
+    "post": "https://www.instagram.com/playaseoul/p/DbCNIEPvSV-/",
+    "file": "aesop.jpg",
+    "bytes": 77596,
+    "sha256": "7a33cab619670d5abf6247d0edc5ec9ec3e238e44a3ff901c5af49c263676ca3"
+  }
+}

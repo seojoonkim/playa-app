@@ -1,0 +1,36 @@
+{
+  "source": "Official @playaseoul Instagram posts provided by Simon",
+  "facility": "PLAYA Lounge, an independent three-floor space",
+  "items": [
+    {
+      "file": "playa-lounge-1.webp",
+      "source_post": "https://www.instagram.com/p/DP0XuFXDwWH/",
+      "original_dimensions": [
+        1440,
+        1800
+      ],
+      "derived_format": "WebP",
+      "sha256": "85bc644d930ba2049bd323d78237aecd43730800809d33fd86bb230c31a825dc"
+    },
+    {
+      "file": "playa-lounge-2.webp",
+      "source_post": "https://www.instagram.com/p/DPptZCuj2F1/",
+      "original_dimensions": [
+        1440,
+        1800
+      ],
+      "derived_format": "WebP",
+      "sha256": "df0b326017075b7ef6221c8ffe276c1b98a0d7a77c2f3097ab3307a5c4c2eed3"
+    },
+    {
+      "file": "playa-lounge-3.webp",
+      "source_post": "https://www.instagram.com/p/DPptOqUD66B/",
+      "original_dimensions": [
+        1440,
+        1800
+      ],
+      "derived_format": "WebP",
+      "sha256": "5e119f8e320f44cacce14997e0d08736238094c516190b993cd23fab8fc02906"
+    }
+  ]
+}

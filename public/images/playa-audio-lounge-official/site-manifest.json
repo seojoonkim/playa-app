@@ -1,0 +1,102 @@
+{
+  "source_page": "https://playa.club/audio-lounge",
+  "assets": [
+    {
+      "file": "site-01.jpg",
+      "source_url": "https://framerusercontent.com/images/LSN3ONRAhAZblgig23vOnjHaAjU.jpg",
+      "sha256": "f6ac87ee34d101ad96a3bcdf99a62825be15eae984a40dac1f7fd8e8662ee022",
+      "width": 1920,
+      "height": 1754,
+      "bytes": 508883
+    },
+    {
+      "file": "site-02.jpg",
+      "source_url": "https://framerusercontent.com/images/AuWmtBOlp6wdRxa4hHtIb0wI.jpg",
+      "sha256": "e0cb9ec9b90b4b8ff64acab30d045262a92481f2abaf229740fef9cdf8f8f6bb",
+      "width": 1211,
+      "height": 871,
+      "bytes": 228618
+    },
+    {
+      "file": "site-03.jpg",
+      "source_url": "https://framerusercontent.com/images/BwOfLgSVd0YcNPsG5TuCX0keUWY.jpg",
+      "sha256": "e2cc2dec0a2174dc40b8e86abb626cc296fa593954bc6aaf8ea35909e1a38d03",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 332492
+    },
+    {
+      "file": "site-04.jpg",
+      "source_url": "https://framerusercontent.com/images/jmxzYepqeiWFap2RwgXZTIPavQ8.jpg",
+      "sha256": "112542bcdb8e8a804860587e1db6ef28862e4a5500f2895d00c6c3308bf93f50",
+      "width": 1920,
+      "height": 2400,
+      "bytes": 593045
+    },
+    {
+      "file": "site-05.jpg",
+      "source_url": "https://framerusercontent.com/images/mG6qyqt3pkTkZrYe6MZuedfujo.jpg",
+      "sha256": "5cf683102757f7364ae8080ba021ddfabe3060654abc79d79d74b9a068a3cc02",
+      "width": 1920,
+      "height": 2560,
+      "bytes": 667583
+    },
+    {
+      "file": "site-06.jpg",
+      "source_url": "https://framerusercontent.com/images/kfrYVV9Cv0cnYDs3tzKly4.jpg",
+      "sha256": "f702cc4560877f960092936a8adca71ae4ee36f62335b2958a270343a6aa5b41",
+      "width": 1920,
+      "height": 2880,
+      "bytes": 709304
+    },
+    {
+      "file": "site-07.jpg",
+      "source_url": "https://framerusercontent.com/images/n0tedYxWdhnf0dKWJI3b7AAkz1o.jpg",
+      "sha256": "7a56ddf52ac7cf976edb5bf54c14eebf96a49dc2551bb1e871fce4460d8428c6",
+      "width": 412,
+      "height": 500,
+      "bytes": 49476
+    },
+    {
+      "file": "site-08.jpg",
+      "source_url": "https://framerusercontent.com/images/ZUrjQsAn9tHXzQAPdnEmCtfXSqM.jpg",
+      "sha256": "0acae3207b273a794c5d3d8c427b44a0e7ca770bbfb1baca12a6507b0a085d6f",
+      "width": 1920,
+      "height": 2400,
+      "bytes": 413736
+    },
+    {
+      "file": "site-09.jpg",
+      "source_url": "https://framerusercontent.com/images/Jt78ndzHWGC9xTZ76y6VxyIyWs.jpg",
+      "sha256": "b83a48b33404b27df429a6447eb2ae489a95844797b91e617fe05317ba3b5d4c",
+      "width": 1920,
+      "height": 2880,
+      "bytes": 1025666
+    },
+    {
+      "file": "site-10.jpg",
+      "source_url": "https://framerusercontent.com/images/vor99bc06nflbGUql8gA4zOlxk.jpg",
+      "sha256": "a7a2aeb3c58ebb9607e36a68832daff8ac85c3c8b7fb4d7c8f5d74645f24f458",
+      "width": 1920,
+      "height": 2365,
+      "bytes": 476694
+    },
+    {
+      "file": "site-11.jpg",
+      "source_url": "https://framerusercontent.com/images/nAlwB538EpK1MGajPuoD9ob8lYk.jpg",
+      "sha256": "cf04497dc8d301e2bb462c510fe4648f983e34606414ad898b08014161af605c",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 442637
+    },
+    {
+      "file": "site-12.jpg",
+      "source_url": "https://framerusercontent.com/images/ytEAcuOCASSnBj7OhaM1r36AY.jpg",
+      "sha256": "fcb55365e1fc7a8c44b1128ae25fe83265a5558f4b564dd8e73b061a886d4e5f",
+      "width": 1875,
+      "height": 1832,
+      "bytes": 884249
+    }
+  ],
+  "unique_count": 12
+}

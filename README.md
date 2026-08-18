@@ -71,3 +71,7 @@ export default defineConfig([
   },
 ])
 ```
+
+## Deployment
+
+Production deploys from the `main` branch through the Vercel `playa-landing` project.
